@@ -48,4 +48,8 @@ defmodule WyeNotionWeb.Endpoint do
   plug Plug.Head
   plug Plug.Session, @session_options
   plug WyeNotionWeb.Router
+
+  socket "/socket", WyeNotionWeb.UserSocket,
+    websocket: true,
+    longpoll: false
 end
