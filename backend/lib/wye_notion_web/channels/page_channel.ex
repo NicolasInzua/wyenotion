@@ -2,12 +2,12 @@ defmodule WyeNotionWeb.PageChannel do
   use WyeNotionWeb, :channel
 
   @impl true
-  def join("page:lobby", payload, socket) do
+  def join("page:lobby", _payload, socket) do
     {:ok, socket}
   end
 
   @impl true
-  def join(_, payload, socket) do
+  def join(_, _payload, _socket) do
     {:error, %{reason: "not found"}}
   end
 
