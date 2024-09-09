@@ -1,4 +1,9 @@
 defmodule WyeNotionWeb.PageChannel do
+
+  @moduledoc """
+  Handles updates to a page
+  """
+
   use WyeNotionWeb, :channel
 
   @impl true
