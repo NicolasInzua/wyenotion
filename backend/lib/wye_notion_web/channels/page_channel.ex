@@ -5,9 +5,13 @@ defmodule WyeNotionWeb.PageChannel do
 
   use WyeNotionWeb, :channel
 
+  alias WyeNotion.Page
+
   @impl true
-  def join("page:lobby", _payload, socket) do
-    {:ok, socket}
+
+  def join("page:" <> slug, _payload, socket) do
+    {:ok, %Page{content: content}} = Page.insert_or_get(slug)
+    {:ok, content, socket}
   end
 
   @impl true
@@ -15,18 +19,12 @@ defmodule WyeNotionWeb.PageChannel do
     {:error, %{reason: "not found"}}
   end
 
-  # Channels can be used in a request/response fashion
-  # by sending replies to requests from the client
   @impl true
-  def handle_in("ping", payload, socket) do
-    {:reply, {:ok, payload}, socket}
-  end
+  def handle_in("new_change", %{"body" => body}, %{topic: "page:" <> slug} = socket) do
+    Page.update_content(slug, body)
 
-  # It is also common to receive messages from the client and
-  # broadcast to everyone in the current topic (page:lobby).
-  @impl true
-  def handle_in("new_change", payload, socket) do
-    broadcast(socket, "new_change", payload)
-    {:noreply, socket}
+    broadcast(socket, "new_change", %{body: body})
+
+    {:reply, :ok, socket}
   end
 end

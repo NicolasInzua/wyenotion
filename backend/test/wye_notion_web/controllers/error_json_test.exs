@@ -6,7 +6,8 @@ defmodule WyeNotionWeb.ErrorJSONTest do
   end
 
   test "renders 500" do
-    assert WyeNotionWeb.ErrorJSON.render("500.json", %{}) ==
-             %{errors: %{detail: "Internal Server Error"}}
+    assert WyeNotionWeb.ErrorJSON.render("500.json", %{}) == %{
+             errors: %{detail: "Internal Server Error"}
+           }
   end
 end
