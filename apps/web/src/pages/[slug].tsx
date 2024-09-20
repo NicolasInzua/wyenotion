@@ -1,4 +1,4 @@
-import { Editor } from '@/components/Editor';
+import { TextEditor } from '@/components/SlateEditor/TextEditor';
 import { useChannel } from '@/hooks/useChannel';
 import { useRouter } from 'next/router';
 
@@ -18,7 +18,7 @@ export default function Home() {
         <h1 className="text-4xl font-bold">WyeNotion</h1>
       </header>
       <main className="flex flex-col gap-8">
-        <Editor onChange={onChange} />
+        <TextEditor onChange={onChange} />
       </main>
     </div>
   );
