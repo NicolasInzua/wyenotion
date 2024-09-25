@@ -15,14 +15,24 @@ defmodule WyeNotionWeb.PageChannelTest do
 
   describe "join/3" do
     setup do
-      # Because the channel process is linked to test process, needed for testing channel terminate
+      # Because the the channels spawned by a test
+      # are linked to the test process, this line is needed
+      # in order to do tests that leave a channel
       Process.flag(:trap_exit, true)
       :ok
     end
+
     test "joining a new page inserts it into the database", %{socket: socket} do
       subscribe_and_join(socket, PageChannel, "page:slug", %{username: "juan"})
 
       assert [%Page{slug: "slug", content: nil}] = Repo.all(Page)
+    end
+
+    test "joining an existing page returns its content", %{socket: socket} do
+      Repo.insert!(%Page{slug: "slug", content: "content"})
+
+      assert {:ok, "content", _} =
+               subscribe_and_join(socket, PageChannel, "page:slug", %{username: "juan"})
     end
 
     test "joining a new page returns nil", %{socket: socket} do
@@ -44,7 +54,6 @@ defmodule WyeNotionWeb.PageChannelTest do
     end
 
     test "the joined users list is kept alive after the first one leaves", %{socket: socket} do
-
       {:ok, _, first_user_socket} =
         subscribe_and_join(socket, PageChannel, "page:slug", %{username: "juan"})
 
@@ -56,13 +65,6 @@ defmodule WyeNotionWeb.PageChannelTest do
       subscribe_and_join(socket, PageChannel, "page:slug", %{username: "marco"})
 
       assert_broadcast "user_list", %{body: ["marco", "pedro"]}
-    end
-
-    test "joining an existing page returns its content", %{socket: socket} do
-      Repo.insert!(%Page{slug: "slug", content: "content"})
-
-      assert {:ok, "content", _} =
-               subscribe_and_join(socket, PageChannel, "page:slug", %{username: "juan"})
     end
 
     test "joining an arbitrary topic returns a not found error", %{socket: socket} do
@@ -94,7 +96,9 @@ defmodule WyeNotionWeb.PageChannelTest do
 
   describe "terminate/2" do
     setup do
-      # Because the channel process is linked to test process, needed for testing channel terminate
+      # Because the the channels spawned by a test
+      # are linked to the test process, this line is needed
+      # in order to do tests that leave a channel
       Process.flag(:trap_exit, true)
       :ok
     end

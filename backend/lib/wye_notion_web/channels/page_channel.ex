@@ -18,7 +18,7 @@ defmodule WyeNotionWeb.PageChannel do
 
         assigns =
           assign(socket,
-            remove_user_from_page: fn -> PageServer.remove_user(slug, username) end
+            on_terminate: fn -> PageServer.remove_user(slug, username) end
           )
 
         {:ok, content, assigns}
@@ -34,8 +34,8 @@ defmodule WyeNotionWeb.PageChannel do
   end
 
   @impl true
-  def terminate(_, %{assigns: %{remove_user_from_page: remove_user_from_page}} = socket) do
-    remove_user_from_page.()
+  def terminate(_, %{assigns: %{on_terminate: on_terminate}} = socket) do
+    on_terminate.()
     broadcast_user_list(socket)
   end
 
@@ -49,8 +49,7 @@ defmodule WyeNotionWeb.PageChannel do
       socket,
       "user_list",
       %{
-        body:
-          PageServer.users_here(slug)
+        body: PageServer.users_here(slug)
       }
     )
   end

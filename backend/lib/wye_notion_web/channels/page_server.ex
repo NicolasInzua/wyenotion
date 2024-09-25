@@ -32,27 +32,28 @@ defmodule WyeNotion.PageServer do
   def get_server!(page_name) do
     case get_server(page_name) do
       {:ok, pid} -> pid
+      {:error, reason} -> raise "Unable to start PageServer. reason: #{inspect(reason)}"
     end
   end
 
-  def add_user(slug, user) do
-    if user_here?(slug, user) do
+  def add_user(page_slug, user) do
+    if user_here?(page_slug, user) do
       {:error, :user_already_present}
     else
-      get_server!(slug) |> GenServer.cast({:add_user, user})
+      get_server!(page_slug) |> GenServer.cast({:add_user, user})
     end
   end
 
-  def remove_user(slug, user) do
-    get_server!(slug) |> GenServer.cast({:remove_user, user})
+  def remove_user(page_slug, user) do
+    get_server!(page_slug) |> GenServer.cast({:remove_user, user})
   end
 
-  def users_here(slug) do
-    get_server!(slug) |> GenServer.call(:users_here)
+  def users_here(page_slug) do
+    get_server!(page_slug) |> GenServer.call(:users_here)
   end
 
-  def user_here?(slug, user) do
-    get_server!(slug) |> GenServer.call({:is_user_here?, user})
+  def user_here?(page_slug, user) do
+    get_server!(page_slug) |> GenServer.call({:is_user_here?, user})
   end
 
   @impl true
