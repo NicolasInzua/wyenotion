@@ -25,3 +25,6 @@ config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
+
+config :wye_notion,
+  page_supervisor: WyeNotion.TestDynamicSupervisor

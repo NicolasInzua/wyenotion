@@ -17,7 +17,8 @@ defmodule WyeNotion.Application do
       # Start a worker by calling: WyeNotion.Worker.start_link(arg)
       # {WyeNotion.Worker, arg},
       # Start to serve requests, typically the last entry
-      WyeNotionWeb.Endpoint
+      WyeNotionWeb.Endpoint,
+      {DynamicSupervisor, name: WyeNotion.DynamicSupervisor, strategy: :one_for_one}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
