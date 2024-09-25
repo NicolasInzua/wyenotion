@@ -16,6 +16,12 @@ defmodule WyeNotion.PageTest do
 
       assert_raise Ecto.ConstraintError, fn -> Repo.insert(%Page{slug: "slug"}) end
     end
+
+    test "accepts large content" do
+      content = String.duplicate("a", 1_000_000)
+
+      assert {:ok, %Page{content: ^content}} = Repo.insert(%Page{slug: "slug", content: content})
+    end
   end
 
   describe "changeset/2" do
