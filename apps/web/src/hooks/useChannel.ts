@@ -20,14 +20,27 @@ interface Channel {
   pushMessage: (event: string, payload: any) => void;
 }
 
-export function useChannel(topic: string): Channel {
+interface UseChannelOptions {
+  username: string;
+  onJoin: (payload: string) => void;
+  onError?: (error: string) => void;
+}
+
+export function useChannel(
+  topic: string,
+  {
+    username,
+    onJoin,
+    onError = () => console.error('Channel not initialized'),
+  }: UseChannelOptions
+): Channel {
   const [channel, setChannel] = useState<PhoenixChannel | null>(null);
 
   useEffect(() => {
     const socket = getSocket();
 
-    const channel = socket.channel(topic);
-    channel.join();
+    const channel = socket.channel(topic, { username });
+    channel.join().receive('ok', onJoin).receive('error', onError);
 
     setChannel(channel);
     return () => {

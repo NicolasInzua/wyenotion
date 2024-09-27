@@ -1,5 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
-import { createEditor, Operation, Range } from 'slate';
+import {
+  RefObject,
+  useCallback,
+  useEffect,
+  useState,
+  useImperativeHandle,
+} from 'react';
+import { createEditor, Descendant, Operation, Range, Transforms } from 'slate';
 import {
   Editable,
   ReactEditor,
@@ -31,20 +37,32 @@ declare module 'slate' {
 const INITIAL_VALUE = [
   {
     type: 'paragraph',
-    children: [{ text: 'Write something...' }],
+    children: [{ text: '' }],
   },
 ];
 
 interface EditorProps {
   onChange: (value: any) => void;
+  handleRef: RefObject<EditorHandle>;
 }
 
-export function TextEditor({ onChange }: EditorProps) {
+export type EditorHandle = {
+  replaceContent: (message: Descendant[]) => void;
+};
+
+export function TextEditor({ onChange, handleRef }: EditorProps) {
   const [editor] = useState(() => withReact(createEditor()));
   const renderLeaf = useCallback(
     (props: RenderLeafProps) => <Leaf {...props} />,
     []
   );
+
+  useImperativeHandle(handleRef, () => ({
+    replaceContent: (message) => {
+      Transforms.removeNodes(editor, { at: [0] });
+      Transforms.insertNodes(editor, message);
+    },
+  }));
 
   return (
     <Slate editor={editor} initialValue={INITIAL_VALUE} onChange={onChange}>

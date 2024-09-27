@@ -1,11 +1,20 @@
 import { TextEditor } from '@/components/SlateEditor/TextEditor';
 import { useChannel } from '@/hooks/useChannel';
 import { useRouter } from 'next/router';
+import { useRef } from 'react';
+import { type EditorHandle } from '@/components/SlateEditor/TextEditor';
 
 export default function Home() {
   const router = useRouter();
+  const handleRef = useRef<EditorHandle>(null);
 
-  const { pushMessage } = useChannel(`page:${router.query.slug}`);
+  const { pushMessage } = useChannel(`page:${router.query.slug}`, {
+    username: `user-${crypto.randomUUID()}`,
+    onJoin: (message) => {
+      if (!message) return;
+      handleRef.current?.replaceContent(JSON.parse(message));
+    },
+  });
 
   const onChange = (value: any) => {
     const content = JSON.stringify(value);
@@ -18,7 +27,7 @@ export default function Home() {
         <h1 className="text-4xl font-bold">WyeNotion</h1>
       </header>
       <main className="flex flex-col gap-8">
-        <TextEditor onChange={onChange} />
+        <TextEditor onChange={onChange} handleRef={handleRef} />
       </main>
     </div>
   );
