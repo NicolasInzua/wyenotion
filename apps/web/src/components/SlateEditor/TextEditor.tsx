@@ -16,7 +16,7 @@ import {
 } from 'slate-react';
 import { RenderLeafProps } from 'slate-react/dist/components/editable';
 import { MarkButton } from '@/components/SlateEditor/Buttons';
-import type { CustomEditor, MarkedText } from '@/@types/editable';
+import type { CustomEditor, MarkedText, Mark } from '@/@types/editable';
 import {
   useDismiss,
   useFloating,
@@ -26,6 +26,8 @@ import {
   flip,
   FloatingPortal,
 } from '@floating-ui/react';
+import isHotKey from 'is-hotkey';
+import { toggleMark } from '@/utils/editorHelpers';
 
 declare module 'slate' {
   interface CustomTypes {
@@ -33,6 +35,13 @@ declare module 'slate' {
     Text: MarkedText;
   }
 }
+
+const HOTKEYS: Record<string, Mark> = {
+  'mod+b': 'bold',
+  'mod+i': 'italic',
+  'mod+u': 'underline',
+  'mod+s': 'strikethrough',
+};
 
 const INITIAL_VALUE = [
   {
@@ -69,6 +78,15 @@ export function TextEditor({ onChange, handleRef }: EditorProps) {
       <Editable
         renderLeaf={renderLeaf}
         className="h-full border-dotted rounded-lg border-stone-200 border-2"
+        onKeyDown={(event) => {
+          for (const hotkey in HOTKEYS) {
+            if (isHotKey(hotkey, event)) {
+              event.preventDefault();
+              const mark = HOTKEYS[hotkey];
+              toggleMark(editor, mark);
+            }
+          }
+        }}
       />
       <FloatingToolbar />
     </Slate>
