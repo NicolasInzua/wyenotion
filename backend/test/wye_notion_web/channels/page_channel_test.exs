@@ -6,6 +6,11 @@ defmodule WyeNotionWeb.PageChannelTest do
   alias WyeNotionWeb.PageChannel
 
   setup do
+    # Because the the channels spawned by a test
+    # are linked to the test process, this line is needed
+    # in order to do tests that leave a channel
+    Process.flag(:trap_exit, true)
+
     socket = socket(WyeNotionWeb.UserSocket, "user_id", %{some: :assign})
 
     start_supervised({DynamicSupervisor, name: WyeNotion.PageServer.supervisor_name()})
@@ -14,14 +19,6 @@ defmodule WyeNotionWeb.PageChannelTest do
   end
 
   describe "join/3" do
-    setup do
-      # Because the the channels spawned by a test
-      # are linked to the test process, this line is needed
-      # in order to do tests that leave a channel
-      Process.flag(:trap_exit, true)
-      :ok
-    end
-
     test "joining a new page inserts it into the database", %{socket: socket} do
       subscribe_and_join(socket, PageChannel, "page:slug", %{username: "juan"})
 
@@ -53,20 +50,6 @@ defmodule WyeNotionWeb.PageChannelTest do
       assert_broadcast "user_list", %{body: ["juan"]}
     end
 
-    test "the joined users list is kept alive after the first one leaves", %{socket: socket} do
-      {:ok, _, first_user_socket} =
-        subscribe_and_join(socket, PageChannel, "page:slug", %{username: "juan"})
-
-      subscribe_and_join(socket, PageChannel, "page:slug", %{username: "pedro"})
-
-      # first user leaves
-      leave(first_user_socket)
-
-      subscribe_and_join(socket, PageChannel, "page:slug", %{username: "marco"})
-
-      assert_broadcast "user_list", %{body: ["marco", "pedro"]}
-    end
-
     test "joining an arbitrary topic returns a not found error", %{socket: socket} do
       assert {:error, %{reason: "not found"}} = subscribe_and_join(socket, PageChannel, "topic")
     end
@@ -95,19 +78,26 @@ defmodule WyeNotionWeb.PageChannelTest do
   end
 
   describe "terminate/2" do
-    setup do
-      # Because the the channels spawned by a test
-      # are linked to the test process, this line is needed
-      # in order to do tests that leave a channel
-      Process.flag(:trap_exit, true)
-      :ok
-    end
-
     test "leaving takes username off list", %{socket: socket} do
       {:ok, _, socket} = subscribe_and_join(socket, PageChannel, "page:slug", %{username: "juan"})
       subscribe_and_join(socket, PageChannel, "page:slug", %{username: "pedro"})
       leave(socket)
       assert_broadcast "user_list", %{body: ["pedro"]}
+    end
+  end
+
+  describe "E2E functioning" do
+    test "the joined users list is kept alive after the first one leaves", %{socket: socket} do
+      {:ok, _, first_user_socket} =
+        subscribe_and_join(socket, PageChannel, "page:slug", %{username: "first_john"})
+
+      subscribe_and_join(socket, PageChannel, "page:slug", %{username: "second_john"})
+
+      leave(first_user_socket)
+
+      subscribe_and_join(socket, PageChannel, "page:slug", %{username: "first_john"})
+
+      assert_broadcast "user_list", %{body: ["second_john"]}
     end
   end
 end

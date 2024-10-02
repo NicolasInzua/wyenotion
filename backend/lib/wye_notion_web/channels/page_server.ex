@@ -7,18 +7,21 @@ defmodule WyeNotion.PageServer do
 
   def get_server(page_name) do
     # TODO: don't dynamically create atoms, use registries
-    server_name = :"#{__MODULE__}:#{page_name}"
 
-    case GenServer.whereis(server_name) do
+    case GenServer.whereis(server_name(page_name)) do
       nil ->
         DynamicSupervisor.start_child(
           supervisor_name(),
-          {__MODULE__, server_name}
+          {__MODULE__, server_name(page_name)}
         )
 
       result ->
         {:ok, result}
     end
+  end
+
+  def server_name(page_name) do
+    :"#{__MODULE__}:#{page_name}"
   end
 
   def supervisor_name() do
