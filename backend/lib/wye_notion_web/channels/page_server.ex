@@ -10,7 +10,11 @@ defmodule WyeNotion.PageServer do
       nil ->
         DynamicSupervisor.start_child(
           supervisor_name(),
-          {__MODULE__, server_name(page_name)}
+          %{
+            id: server_name(page_name),
+            start: {__MODULE__, :start_link, [server_name(page_name)]},
+            restart: :transient
+          }
         )
 
       result ->
@@ -38,15 +42,11 @@ defmodule WyeNotion.PageServer do
   end
 
   def add_user(page_slug, user) do
-    if user_here?(page_slug, user) do
-      {:error, :user_already_present}
-    else
-      get_server!(page_slug) |> GenServer.cast({:add_user, user})
-    end
+    get_server!(page_slug) |> GenServer.call({:add_user, user})
   end
 
   def remove_user(page_slug, user) do
-    get_server!(page_slug) |> GenServer.cast({:remove_user, user})
+    get_server!(page_slug) |> GenServer.call({:remove_user, user})
   end
 
   def users_here(page_slug) do
@@ -59,26 +59,40 @@ defmodule WyeNotion.PageServer do
 
   @impl true
   def init(_) do
-    {:ok, MapSet.new()}
+    {:ok, %{users: MapSet.new()}}
   end
 
   @impl true
-  def handle_call(:users_here, _from, users) do
-    {:reply, MapSet.to_list(users), users}
+  def handle_call(:users_here, _from, %{users: users} = state) do
+    {:reply, MapSet.to_list(users), state}
   end
 
   @impl true
-  def handle_call({:is_user_here?, user}, _from, users) do
-    {:reply, MapSet.member?(users, user), users}
+  def handle_call({:is_user_here?, user}, _from, %{users: users} = state) do
+    {:reply, MapSet.member?(users, user), state}
   end
 
   @impl true
-  def handle_cast({:add_user, user}, users) do
-    {:noreply, MapSet.put(users, user)}
+  def handle_call({:remove_user, user}, _from, %{users: users} = state) do
+    new_users = MapSet.delete(users, user)
+
+    new_state = %{state | users: new_users}
+
+    if MapSet.size(new_users) == 0 do
+      {:stop, :shutdown, :ok, new_state}
+    else
+      {:reply, :ok, new_state}
+    end
   end
 
   @impl true
-  def handle_cast({:remove_user, user}, users) do
-    {:noreply, MapSet.delete(users, user)}
+  def handle_call({:add_user, user}, _from, %{users: users} = state) do
+    new_state = %{state | users: MapSet.put(users, user)}
+
+    if MapSet.member?(users, user) do
+      {:reply, {:error, :user_already_present}, new_state}
+    else
+      {:reply, :ok, new_state}
+    end
   end
 end
