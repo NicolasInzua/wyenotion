@@ -1,4 +1,8 @@
 defmodule WyeNotion.Page do
+  @moduledoc """
+  Ecto model for a page/document
+  """
+
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query

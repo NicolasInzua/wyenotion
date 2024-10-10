@@ -6,8 +6,6 @@ defmodule WyeNotion.PageServer do
   use GenServer
 
   def get_server(page_name) do
-    # TODO: don't dynamically create atoms, use registries
-
     case GenServer.whereis(server_name(page_name)) do
       nil ->
         DynamicSupervisor.start_child(

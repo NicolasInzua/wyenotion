@@ -1,0 +1,77 @@
+name: Elixir CI
+
+on:
+  - pull_request
+  - push
+
+env:
+  MIX_ENV: test
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-lint:
+    services:
+      db:
+        image: postgres:12
+        ports: ['5432:5432']
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    runs-on: ubuntu-latest
+    name: Test And Lint
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Erlang, OTP, and Elixir, with versions from .tool-versions
+      uses: erlef/setup-beam@v1
+      with:
+        version-file: backend/.tool-versions
+        version-type: strict
+
+    - name: Install dependencies
+      run: |
+        cd backend
+        mix deps.get
+
+    - name: Cache deps
+      uses: actions/cache@v4
+      with:
+        path: backend/deps
+        key: ${{ runner.os }}-mix-deps-${{ hashFiles('**/mix.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-mix-deps-
+
+    - name: Cache compiled build
+      uses: actions/cache@v4
+      with:
+        path: backend/_build
+        key: ${{ runner.os }}-mix-build-${{ hashFiles('**/mix.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-mix-build-
+          ${{ runner.os }}-mix-
+
+    - name: Compile the project
+      run: |
+        cd backend
+        mix deps.compile
+        mix compile --warnings-as-errors
+
+    - name: Check Formatting and Linting
+      run: |
+        cd backend
+        mix format --check-formatted
+        mix credo
+
+    - name: Run tests
+      run: |
+        cd backend
+        mix test

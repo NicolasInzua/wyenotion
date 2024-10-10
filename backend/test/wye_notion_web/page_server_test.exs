@@ -24,7 +24,8 @@ defmodule WyeNotionWeb.PageServerTest do
     end
 
     test "uses an existing corresponding server if it was present" do
-      DynamicSupervisor.start_child( # corresponding server
+      # corresponding server
+      DynamicSupervisor.start_child(
         PageServer.supervisor_name(),
         {PageServer, PageServer.server_name("test_page")}
       )
@@ -65,7 +66,8 @@ defmodule WyeNotionWeb.PageServerTest do
     end
 
     test "uses an existing corresponding server if it was present" do
-      DynamicSupervisor.start_child( # corresponding server
+      # corresponding server
+      DynamicSupervisor.start_child(
         PageServer.supervisor_name(),
         {PageServer, PageServer.server_name("test_page")}
       )
@@ -106,7 +108,8 @@ defmodule WyeNotionWeb.PageServerTest do
     end
 
     test "uses an existing corresponding server if it was present" do
-      DynamicSupervisor.start_child( # corresponding server
+      # corresponding server
+      DynamicSupervisor.start_child(
         PageServer.supervisor_name(),
         {PageServer, PageServer.server_name("test_page")}
       )
@@ -163,7 +166,8 @@ defmodule WyeNotionWeb.PageServerTest do
     end
 
     test "uses an existing corresponding server if it was present" do
-      DynamicSupervisor.start_child( # corresponding server
+      # corresponding server
+      DynamicSupervisor.start_child(
         PageServer.supervisor_name(),
         {PageServer, PageServer.server_name("test_page")}
       )
@@ -207,7 +211,8 @@ defmodule WyeNotionWeb.PageServerTest do
     end
 
     test "uses an existing corresponding server if it was present" do
-      DynamicSupervisor.start_child( # corresponding server
+      # corresponding server
+      DynamicSupervisor.start_child(
         PageServer.supervisor_name(),
         {PageServer, PageServer.server_name("test_page")}
       )
@@ -243,7 +248,8 @@ defmodule WyeNotionWeb.PageServerTest do
     end
 
     test "uses an existing corresponding server if it was present" do
-      DynamicSupervisor.start_child( # corresponding server
+      # corresponding server
+      DynamicSupervisor.start_child(
         PageServer.supervisor_name(),
         {PageServer, PageServer.server_name("test_page")}
       )
