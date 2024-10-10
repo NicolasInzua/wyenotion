@@ -1,8 +1,9 @@
 name: Elixir CI
 
 on:
-  - pull_request
-  - push
+  push:
+    paths:
+      - 'backend/**'
 
 env:
   MIX_ENV: test

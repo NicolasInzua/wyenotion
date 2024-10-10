@@ -4,9 +4,6 @@ on:
   push:
     paths:
       - 'apps/web/**'
-  pull_request:
-    paths:
-      - 'apps/web/**'
 
 jobs:
   test:
