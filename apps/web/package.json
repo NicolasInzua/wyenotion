@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "format:dry": "prettier --check \"src/**/*.{ts,tsx,md,js,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,md,js,json}\"",
     "format": "prettier --write \"src/**/*.{ts,tsx,md,js,json}\""
   },
   "dependencies": {

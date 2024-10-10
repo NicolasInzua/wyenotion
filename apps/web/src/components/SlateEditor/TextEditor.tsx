@@ -51,7 +51,7 @@ const INITIAL_VALUE = [
 ];
 
 interface EditorProps {
-  onChange: (value: any) => void;
+  onChange: (value: Descendant[]) => void;
   handleRef: RefObject<EditorHandle>;
 }
 

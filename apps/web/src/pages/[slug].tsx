@@ -16,7 +16,7 @@ export default function Home() {
     },
   });
 
-  const onChange = (value: any) => {
+  const onChange = (value: unknown) => {
     const content = JSON.stringify(value);
     pushMessage('new_change', { body: content });
   };

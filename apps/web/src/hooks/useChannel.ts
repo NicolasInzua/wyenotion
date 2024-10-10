@@ -17,7 +17,7 @@ function getSocket(): Socket {
 }
 
 interface Channel {
-  pushMessage: (event: string, payload: any) => void;
+  pushMessage: (event: string, payload: unknown) => void;
 }
 
 interface UseChannelOptions {
@@ -46,10 +46,10 @@ export function useChannel(
     return () => {
       channel.leave();
     };
-  }, [topic]);
+  }, [topic, username, onJoin, onError]);
 
-  const pushMessage = (event: string, payload: any) => {
-    if (channel) {
+  const pushMessage = (event: string, payload: unknown) => {
+    if (channel && payload) {
       channel.push(event, payload);
     } else {
       throw 'Channel not initialized';
