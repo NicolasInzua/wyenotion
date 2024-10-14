@@ -39,8 +39,8 @@ defmodule WyeNotion.PageTest do
 
       Repo.insert!(changeset)
 
-      assert {:error, result_changeset} = Repo.insert(changeset)
-      assert %_{errors: [slug: {"has already been taken", _}], valid?: false} = result_changeset
+      assert {:error, %_{errors: [slug: {"has already been taken", _}], valid?: false}} =
+               Repo.insert(changeset)
     end
   end
 
@@ -62,13 +62,13 @@ defmodule WyeNotion.PageTest do
 
       new_content = "updated #{content}"
 
-      assert {:ok, [affected_rows: 1]} = Page.update_content("slug", new_content)
+      assert {:ok, [affected_rows: 1]} == Page.update_content("slug", new_content)
 
       assert %Page{content: ^new_content} = Repo.get(Page, id)
     end
 
     test "returns :ok with affected rows set to 0 when there is no page with the given slug" do
-      assert {:ok, [affected_rows: 0]} = Page.update_content("slug", "content")
+      assert {:ok, [affected_rows: 0]} == Page.update_content("slug", "content")
     end
   end
 end
