@@ -18,7 +18,8 @@ defmodule WyeNotion.Application do
       # {WyeNotion.Worker, arg},
       # Start to serve requests, typically the last entry
       WyeNotionWeb.Endpoint,
-      {DynamicSupervisor, name: WyeNotion.DynamicSupervisor}
+      {DynamicSupervisor, name: WyeNotion.DynamicSupervisor},
+      {Registry, keys: :unique, name: WyeNotion.PageRegistry}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

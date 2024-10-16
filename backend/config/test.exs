@@ -27,4 +27,5 @@ config :logger, level: :warning
 config :phoenix, :plug_init_mode, :runtime
 
 config :wye_notion,
-  page_supervisor: WyeNotion.TestDynamicSupervisor
+  page_supervisor: WyeNotion.TestDynamicSupervisor,
+  page_registry: WyeNotion.TestPageRegistry

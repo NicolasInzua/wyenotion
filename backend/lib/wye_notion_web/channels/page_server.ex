@@ -5,33 +5,42 @@ defmodule WyeNotion.PageServer do
 
   use GenServer
 
+  def server_id(page_name), do: :"#{__MODULE__}:#{page_name}"
+
+  def supervisor_name(), do: Application.fetch_env!(:wye_notion, :page_supervisor)
+
+  def registry_name(), do: Application.fetch_env!(:wye_notion, :page_registry)
+
+  defp registry_spec(page_name),
+    do: {:via, Registry, {registry_name(), server_id(page_name)}}
+
+  defp start_under_supervisor(page_name),
+    do:
+      DynamicSupervisor.start_child(
+        supervisor_name(),
+        %{
+          id: server_id(page_name),
+          start: {__MODULE__, :start_link, [page_name]},
+          restart: :transient
+        }
+      )
+
+  def start_link(page_name) do
+    GenServer.start_link(__MODULE__, server_id(page_name), name: registry_spec(page_name))
+  end
+
   def get_server(page_name) do
-    case GenServer.whereis(server_name(page_name)) do
-      nil ->
-        DynamicSupervisor.start_child(
-          supervisor_name(),
-          %{
-            id: server_name(page_name),
-            start: {__MODULE__, :start_link, [server_name(page_name)]},
-            restart: :transient
-          }
-        )
+    case Registry.lookup(registry_name(), server_id(page_name)) do
+      [{pid, _} | _] ->
+        {:ok, pid}
 
-      result ->
-        {:ok, result}
+      [] ->
+        case start_under_supervisor(page_name) do
+          {:ok, pid} -> {:ok, pid}
+          :ignore -> {:error, :ignore}
+          err -> err
+        end
     end
-  end
-
-  def server_name(page_name) do
-    :"#{__MODULE__}:#{page_name}"
-  end
-
-  def supervisor_name() do
-    Application.fetch_env!(:wye_notion, :page_supervisor)
-  end
-
-  def start_link(server_name) do
-    GenServer.start_link(__MODULE__, server_name, name: server_name)
   end
 
   def get_server!(page_name) do
@@ -58,8 +67,8 @@ defmodule WyeNotion.PageServer do
   end
 
   @impl true
-  def init(_) do
-    {:ok, %{users: MapSet.new()}}
+  def init(server_id) do
+    {:ok, %{users: MapSet.new(), server_id: server_id}}
   end
 
   @impl true
@@ -73,12 +82,13 @@ defmodule WyeNotion.PageServer do
   end
 
   @impl true
-  def handle_call({:remove_user, user}, _from, %{users: users} = state) do
+  def handle_call({:remove_user, user}, _from, %{users: users, server_id: server_id} = state) do
     new_users = MapSet.delete(users, user)
 
     new_state = %{state | users: new_users}
 
     if MapSet.size(new_users) == 0 do
+      Registry.unregister(registry_name(), server_id)
       {:stop, :shutdown, :ok, new_state}
     else
       {:reply, :ok, new_state}

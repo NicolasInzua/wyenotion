@@ -4,7 +4,8 @@ defmodule WyeNotionWeb.PageServerTest do
   alias WyeNotion.PageServer
 
   setup do
-    {:ok, _} = start_supervised({DynamicSupervisor, name: WyeNotion.PageServer.supervisor_name()})
+    start_supervised!({DynamicSupervisor, name: WyeNotion.PageServer.supervisor_name()})
+    start_supervised!({Registry, keys: :unique, name: WyeNotion.PageServer.registry_name()})
     :ok
   end
 
@@ -18,7 +19,9 @@ defmodule WyeNotionWeb.PageServerTest do
 
     test "returns  a corresponding PageServer PID" do
       res = PageServer.get_server!("test_page")
-      pid = GenServer.whereis(PageServer.server_name("test_page"))
+
+      [{pid, _} | _] =
+        Registry.lookup(WyeNotion.PageServer.registry_name(), PageServer.server_id("test_page"))
 
       assert pid == res
     end
@@ -27,7 +30,11 @@ defmodule WyeNotionWeb.PageServerTest do
       # corresponding server
       DynamicSupervisor.start_child(
         PageServer.supervisor_name(),
-        {PageServer, PageServer.server_name("test_page")}
+        %{
+          id: PageServer.server_id("test_page"),
+          start: {WyeNotion.PageServer, :start_link, ["test_page"]},
+          restart: :transient
+        }
       )
 
       %{active: servers_before} = DynamicSupervisor.count_children(PageServer.supervisor_name())
@@ -60,7 +67,9 @@ defmodule WyeNotionWeb.PageServerTest do
 
     test "returns a tuple containing :ok and a corresponding PageServer PID" do
       res = PageServer.get_server("test_page")
-      pid = GenServer.whereis(PageServer.server_name("test_page"))
+
+      [{pid, _} | _] =
+        Registry.lookup(WyeNotion.PageServer.registry_name(), PageServer.server_id("test_page"))
 
       assert {:ok, pid} == res
     end
@@ -69,7 +78,11 @@ defmodule WyeNotionWeb.PageServerTest do
       # corresponding server
       DynamicSupervisor.start_child(
         PageServer.supervisor_name(),
-        {PageServer, PageServer.server_name("test_page")}
+        %{
+          id: PageServer.server_id("test_page"),
+          start: {WyeNotion.PageServer, :start_link, ["test_page"]},
+          restart: :transient
+        }
       )
 
       %{active: servers_before} = DynamicSupervisor.count_children(PageServer.supervisor_name())
@@ -111,7 +124,11 @@ defmodule WyeNotionWeb.PageServerTest do
       # corresponding server
       DynamicSupervisor.start_child(
         PageServer.supervisor_name(),
-        {PageServer, PageServer.server_name("test_page")}
+        %{
+          id: PageServer.server_id("test_page"),
+          start: {WyeNotion.PageServer, :start_link, ["test_page"]},
+          restart: :transient
+        }
       )
 
       %{active: servers_before} = DynamicSupervisor.count_children(PageServer.supervisor_name())
@@ -171,7 +188,7 @@ defmodule WyeNotionWeb.PageServerTest do
       # corresponding server
       DynamicSupervisor.start_child(
         PageServer.supervisor_name(),
-        {PageServer, PageServer.server_name("test_page")}
+        {PageServer, PageServer.server_id("test_page")}
       )
 
       %{active: servers_before} = DynamicSupervisor.count_children(PageServer.supervisor_name())
@@ -188,7 +205,11 @@ defmodule WyeNotionWeb.PageServerTest do
       PageServer.remove_user("test_page", "mike")
       PageServer.remove_user("test_page", "mike")
 
-      assert nil == GenServer.whereis(PageServer.server_name("test_page"))
+      assert Registry.lookup(
+               WyeNotion.PageServer.registry_name(),
+               PageServer.server_id("test_page")
+             ) ==
+               []
     end
   end
 
@@ -214,7 +235,11 @@ defmodule WyeNotionWeb.PageServerTest do
       # corresponding server
       DynamicSupervisor.start_child(
         PageServer.supervisor_name(),
-        {PageServer, PageServer.server_name("test_page")}
+        %{
+          id: PageServer.server_id("test_page"),
+          start: {WyeNotion.PageServer, :start_link, ["test_page"]},
+          restart: :transient
+        }
       )
 
       %{active: servers_before} = DynamicSupervisor.count_children(PageServer.supervisor_name())
@@ -251,7 +276,11 @@ defmodule WyeNotionWeb.PageServerTest do
       # corresponding server
       DynamicSupervisor.start_child(
         PageServer.supervisor_name(),
-        {PageServer, PageServer.server_name("test_page")}
+        %{
+          id: PageServer.server_id("test_page"),
+          start: {WyeNotion.PageServer, :start_link, ["test_page"]},
+          restart: :transient
+        }
       )
 
       %{active: servers_before} = DynamicSupervisor.count_children(PageServer.supervisor_name())

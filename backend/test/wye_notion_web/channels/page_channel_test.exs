@@ -13,7 +13,9 @@ defmodule WyeNotionWeb.PageChannelTest do
 
     socket = socket(WyeNotionWeb.UserSocket, "user_id", %{some: :assign})
 
-    start_supervised({DynamicSupervisor, name: WyeNotion.PageServer.supervisor_name()})
+    start_supervised!({DynamicSupervisor, name: WyeNotion.PageServer.supervisor_name()})
+
+    start_supervised!({Registry, keys: :unique, name: WyeNotion.PageServer.registry_name()})
 
     %{socket: socket}
   end
