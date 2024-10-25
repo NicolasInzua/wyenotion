@@ -17,22 +17,21 @@ function getSocket(): Socket {
 }
 
 interface Channel {
-  pushMessage: (event: string, payload: unknown) => void;
+  pushChannelEvent: (event: string, payload: unknown) => void;
 }
 
-interface UseChannelOptions {
+interface ChannelOptions {
   username: string;
   onJoin: (payload: string) => void;
   onError?: (error: string) => void;
+  onMessage?: (event: string, payload: unknown) => void;
 }
+
+const defaultOnError = () => console.error('Channel not initialized');
 
 export function useChannel(
   topic: string,
-  {
-    username,
-    onJoin,
-    onError = () => console.error('Channel not initialized'),
-  }: UseChannelOptions
+  { username, onJoin, onError = defaultOnError, onMessage }: ChannelOptions
 ): Channel {
   const [channel, setChannel] = useState<PhoenixChannel | null>(null);
 
@@ -42,13 +41,19 @@ export function useChannel(
     const channel = socket.channel(topic, { username });
     channel.join().receive('ok', onJoin).receive('error', onError);
 
+    if (onMessage)
+      channel.onMessage = (event, payload) => {
+        onMessage(event, payload);
+        return payload;
+      };
+
     setChannel(channel);
     return () => {
       channel.leave();
     };
-  }, [topic, username, onJoin, onError]);
+  }, [topic, username, onJoin, onError, onMessage]);
 
-  const pushMessage = (event: string, payload: unknown) => {
+  const pushChannelEvent = (event: string, payload: unknown) => {
     if (channel && payload) {
       channel.push(event, payload);
     } else {
@@ -56,5 +61,5 @@ export function useChannel(
     }
   };
 
-  return { pushMessage };
+  return { pushChannelEvent };
 }

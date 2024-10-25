@@ -77,7 +77,7 @@ export function TextEditor({ onChange, handleRef }: EditorProps) {
     <Slate editor={editor} initialValue={INITIAL_VALUE} onChange={onChange}>
       <Editable
         renderLeaf={renderLeaf}
-        className="h-full border-dotted rounded-lg border-stone-200 border-2"
+        className="h-full rounded-lg border-stone-200 border-2"
         onKeyDown={(event) => {
           for (const hotkey in HOTKEYS) {
             if (isHotKey(hotkey, event)) {

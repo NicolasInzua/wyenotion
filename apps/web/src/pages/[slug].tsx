@@ -1,24 +1,42 @@
 import { TextEditor } from '@/components/SlateEditor/TextEditor';
 import { useChannel } from '@/hooks/useChannel';
 import { useRouter } from 'next/router';
-import { useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { type EditorHandle } from '@/components/SlateEditor/TextEditor';
+import { UserListTooltip } from '@/components/UserListTooltip';
 
 export default function Home() {
   const router = useRouter();
-  const handleRef = useRef<EditorHandle>(null);
 
-  const { pushMessage } = useChannel(`page:${router.query.slug}`, {
-    username: `user-${crypto.randomUUID()}`,
-    onJoin: (message) => {
-      if (!message) return;
-      handleRef.current?.replaceContent(JSON.parse(message));
-    },
+  const handleRef = useRef<EditorHandle>(null);
+  const [currentUserNames, setCurrentUserNames] = useState<string[]>([]);
+
+  const username = useMemo(() => `user-${crypto.randomUUID()}`, []);
+
+  const onJoin = useCallback((message: string) => {
+    if (!message) return;
+    handleRef.current?.replaceContent(JSON.parse(message));
+  }, []);
+
+  const onMessage = useCallback((event: string, payload: unknown) => {
+    if (
+      event === 'user_list' &&
+      typeof payload === 'object' &&
+      payload !== null &&
+      'body' in payload
+    )
+      setCurrentUserNames(payload.body as string[]);
+  }, []);
+
+  const { pushChannelEvent } = useChannel(`page:${router.query.slug}`, {
+    username,
+    onJoin,
+    onMessage,
   });
 
   const onChange = (value: unknown) => {
     const content = JSON.stringify(value);
-    pushMessage('new_change', { body: content });
+    pushChannelEvent('new_change', { body: content });
   };
 
   return (
@@ -27,6 +45,9 @@ export default function Home() {
         <h1 className="text-4xl font-bold">WyeNotion</h1>
       </header>
       <main className="flex flex-col gap-8">
+        <div className="flex justify-end">
+          <UserListTooltip userNames={currentUserNames} />
+        </div>
         <TextEditor onChange={onChange} handleRef={handleRef} />
       </main>
     </div>
