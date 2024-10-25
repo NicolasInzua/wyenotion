@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@floating-ui/react": "^0.26.24",
+    "axios": "^1.7.7",
     "is-hotkey": "^0.2.0",
     "lucide-react": "^0.439.0",
     "next": "14.2.8",

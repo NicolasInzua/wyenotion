@@ -1,16 +1,21 @@
-import { TextEditor } from '@/components/SlateEditor/TextEditor';
-import { useChannel } from '@/hooks/useChannel';
-import { useRouter } from 'next/router';
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { useChannel } from '@/hooks/useChannel';
+import { TextEditor } from '@/components/SlateEditor/TextEditor';
 import { type EditorHandle } from '@/components/SlateEditor/TextEditor';
 import { UserListTooltip } from '@/components/UserListTooltip';
+import type {
+  GetServerSidePropsContext,
+  InferGetServerSidePropsType,
+} from 'next';
+import { ApiError, api } from '@/services/api';
 
-export default function Home() {
-  const router = useRouter();
-
+export default function Home({
+  slug,
+  pageContent,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const handleRef = useRef<EditorHandle>(null);
-  const [currentUserNames, setCurrentUserNames] = useState<string[]>([]);
 
+  const [currentUserNames, setCurrentUserNames] = useState<string[]>([]);
   const username = useMemo(() => `user-${crypto.randomUUID()}`, []);
 
   const onJoin = useCallback((message: string) => {
@@ -28,7 +33,7 @@ export default function Home() {
       setCurrentUserNames(payload.body as string[]);
   }, []);
 
-  const { pushChannelEvent } = useChannel(`page:${router.query.slug}`, {
+  const { pushChannelEvent } = useChannel(`page:${slug}`, {
     username,
     onJoin,
     onMessage,
@@ -45,11 +50,32 @@ export default function Home() {
         <h1 className="text-4xl font-bold">WyeNotion</h1>
       </header>
       <main className="flex flex-col gap-8">
+        <TextEditor
+          onChange={onChange}
+          handleRef={handleRef}
+          initialContent={pageContent}
+        />
         <div className="flex justify-end">
           <UserListTooltip userNames={currentUserNames} />
         </div>
-        <TextEditor onChange={onChange} handleRef={handleRef} />
       </main>
     </div>
   );
+}
+
+export async function getServerSideProps({ query }: GetServerSidePropsContext) {
+  const slug = query.slug as string;
+
+  try {
+    const pageContent = await api.fetchPageContent(slug);
+    return {
+      props: {
+        slug,
+        pageContent,
+      },
+    };
+  } catch (error) {
+    const apiError = error as ApiError;
+    return { props: { slug, pageContent: null, apiError } };
+  }
 }

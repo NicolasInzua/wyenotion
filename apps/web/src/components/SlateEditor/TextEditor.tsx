@@ -43,7 +43,7 @@ const HOTKEYS: Record<string, Mark> = {
   'mod+s': 'strikethrough',
 };
 
-const INITIAL_VALUE = [
+const DEFAULT_VALUE = [
   {
     type: 'paragraph',
     children: [{ text: '' }],
@@ -51,6 +51,7 @@ const INITIAL_VALUE = [
 ];
 
 interface EditorProps {
+  initialContent: Descendant[] | null;
   onChange: (value: Descendant[]) => void;
   handleRef: RefObject<EditorHandle>;
 }
@@ -59,7 +60,11 @@ export type EditorHandle = {
   replaceContent: (message: Descendant[]) => void;
 };
 
-export function TextEditor({ onChange, handleRef }: EditorProps) {
+export function TextEditor({
+  initialContent,
+  onChange,
+  handleRef,
+}: EditorProps) {
   const [editor] = useState(() => withReact(createEditor()));
   const renderLeaf = useCallback(
     (props: RenderLeafProps) => <Leaf {...props} />,
@@ -74,7 +79,11 @@ export function TextEditor({ onChange, handleRef }: EditorProps) {
   }));
 
   return (
-    <Slate editor={editor} initialValue={INITIAL_VALUE} onChange={onChange}>
+    <Slate
+      editor={editor}
+      initialValue={initialContent || DEFAULT_VALUE}
+      onChange={onChange}
+    >
       <Editable
         renderLeaf={renderLeaf}
         className="h-full rounded-lg border-stone-200 border-2"
