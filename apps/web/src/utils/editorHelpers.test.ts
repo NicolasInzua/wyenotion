@@ -1,11 +1,16 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-import { createEditor } from 'slate';
-import { isMarkActive, toggleMark } from './editorHelpers';
+import { createEditor, InsertTextOperation, SplitNodeOperation } from 'slate';
+import { isMarkActive, toggleMark, withNodeId } from './editorHelpers';
+import { nanoid } from 'nanoid';
+import { BlockType, CustomElement } from '../@types/editable';
 
 describe('isMarkActive', () => {
   const editor = createEditor();
+
   editor.children = [
     {
+      id: nanoid(16),
+      type: BlockType.Paragraph,
       children: [
         {
           text: 'Test text 1',
@@ -14,6 +19,8 @@ describe('isMarkActive', () => {
       ],
     },
     {
+      id: nanoid(16),
+      type: BlockType.Paragraph,
       children: [
         {
           text: 'Test text 2',
@@ -23,6 +30,8 @@ describe('isMarkActive', () => {
       ],
     },
     {
+      id: nanoid(16),
+      type: BlockType.Paragraph,
       children: [
         {
           text: 'Test text 3a',
@@ -83,6 +92,8 @@ describe('toggleMark', () => {
   beforeEach(() => {
     editor.children = [
       {
+        id: nanoid(16),
+        type: BlockType.Paragraph,
         children: [
           {
             text: 'Test text 1',
@@ -91,6 +102,8 @@ describe('toggleMark', () => {
         ],
       },
       {
+        id: nanoid(16),
+        type: BlockType.Paragraph,
         children: [
           {
             text: 'Test text 2',
@@ -98,6 +111,8 @@ describe('toggleMark', () => {
         ],
       },
       {
+        id: nanoid(16),
+        type: BlockType.Paragraph,
         children: [
           {
             text: 'Test text 3a',
@@ -118,7 +133,8 @@ describe('toggleMark', () => {
     };
     toggleMark(editor, 'bold');
 
-    expect(editor.children[0]).toEqual({
+    expect(editor.children[0]).toMatchObject({
+      type: BlockType.Paragraph,
       children: [
         {
           text: 'Test text 1',
@@ -134,7 +150,8 @@ describe('toggleMark', () => {
     };
 
     toggleMark(editor, 'bold');
-    expect(editor.children[1]).toEqual({
+    expect(editor.children[1]).toMatchObject({
+      type: BlockType.Paragraph,
       children: [
         {
           text: 'Test text 2',
@@ -151,8 +168,9 @@ describe('toggleMark', () => {
     };
 
     toggleMark(editor, 'bold');
-    expect(editor.children).toEqual([
+    expect(editor.children).toMatchObject([
       {
+        type: BlockType.Paragraph,
         children: [
           {
             text: 'Test text 1',
@@ -160,6 +178,7 @@ describe('toggleMark', () => {
         ],
       },
       {
+        type: BlockType.Paragraph,
         children: [
           {
             text: 'Test text 2',
@@ -167,6 +186,7 @@ describe('toggleMark', () => {
         ],
       },
       {
+        type: BlockType.Paragraph,
         children: [
           {
             text: 'Test text 3a',
@@ -187,7 +207,8 @@ describe('toggleMark', () => {
     };
 
     toggleMark(editor, 'italic');
-    expect(editor.children[0]).toEqual({
+    expect(editor.children[0]).toMatchObject({
+      type: BlockType.Paragraph,
       children: [
         {
           text: 'Test text 1',
@@ -205,7 +226,8 @@ describe('toggleMark', () => {
     };
 
     toggleMark(editor, 'strikethrough');
-    expect(editor.children[2]).toEqual({
+    expect(editor.children[2]).toMatchObject({
+      type: BlockType.Paragraph,
       children: [
         {
           text: 'Test text 3a',
@@ -218,5 +240,49 @@ describe('toggleMark', () => {
         },
       ],
     });
+  });
+});
+
+describe('withNodeId', () => {
+  const editor = withNodeId(createEditor());
+  const INITIAL_VALUE = [
+    {
+      id: nanoid(16),
+      type: BlockType.Paragraph,
+      children: [{ text: '' }],
+    },
+  ];
+
+  beforeEach(() => {
+    editor.children = INITIAL_VALUE;
+  });
+
+  test('should add id to new node', () => {
+    const splitOpertion: SplitNodeOperation = {
+      type: 'split_node',
+      path: [0],
+      properties: {
+        type: BlockType.Paragraph,
+        children: [{ text: 'Test text' }],
+      },
+      position: 0,
+    };
+    editor.apply(splitOpertion);
+
+    expect(editor.children[1]).toHaveProperty('id');
+  });
+
+  test('should not add id to children text', () => {
+    const text_oper: InsertTextOperation = {
+      type: 'insert_text',
+      path: [0, 0],
+      offset: 0,
+      text: 'Test text',
+    };
+
+    editor.apply(text_oper);
+    expect(
+      (editor.children[0] as CustomElement).children[0]
+    ).not.toHaveProperty('id');
   });
 });

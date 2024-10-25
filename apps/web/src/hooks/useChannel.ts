@@ -22,16 +22,22 @@ interface Channel {
 
 interface ChannelOptions {
   username: string;
-  onJoin: (payload: string) => void;
+  onJoin?: (payload: string) => void;
   onError?: (error: string) => void;
   onMessage?: (event: string, payload: unknown) => void;
 }
 
-const defaultOnError = () => console.error('Channel not initialized');
+const defaultOnJoin = () => console.log('Channel joined');
+const defaultOnError = () => console.error('Channel error');
 
 export function useChannel(
   topic: string,
-  { username, onJoin, onError = defaultOnError, onMessage }: ChannelOptions
+  {
+    username,
+    onJoin = defaultOnJoin,
+    onError = defaultOnError,
+    onMessage,
+  }: ChannelOptions
 ): Channel {
   const [channel, setChannel] = useState<PhoenixChannel | null>(null);
 

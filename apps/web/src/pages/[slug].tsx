@@ -18,11 +18,6 @@ export default function Home({
   const [currentUserNames, setCurrentUserNames] = useState<string[]>([]);
   const username = useMemo(() => `user-${crypto.randomUUID()}`, []);
 
-  const onJoin = useCallback((message: string) => {
-    if (!message) return;
-    handleRef.current?.replaceContent(JSON.parse(message));
-  }, []);
-
   const onMessage = useCallback((event: string, payload: unknown) => {
     if (
       event === 'user_list' &&
@@ -35,7 +30,6 @@ export default function Home({
 
   const { pushChannelEvent } = useChannel(`page:${slug}`, {
     username,
-    onJoin,
     onMessage,
   });
 
@@ -50,14 +44,14 @@ export default function Home({
         <h1 className="text-4xl font-bold">WyeNotion</h1>
       </header>
       <main className="flex flex-col gap-8">
+        <div className="flex justify-end">
+          <UserListTooltip userNames={currentUserNames} />
+        </div>
         <TextEditor
           onChange={onChange}
           handleRef={handleRef}
           initialContent={pageContent}
         />
-        <div className="flex justify-end">
-          <UserListTooltip userNames={currentUserNames} />
-        </div>
       </main>
     </div>
   );
