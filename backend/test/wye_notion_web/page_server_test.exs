@@ -115,7 +115,10 @@ defmodule WyeNotionWeb.PageServerTest do
     test "adding a user is idempotent" do
       PageServer.add_user("test_page", "john")
       PageServer.add_user("test_page", "john")
-      PageServer.add_user("test_page", "john")
+      res = PageServer.add_user("test_page", "john")
+
+      assert :ok == res
+
       users = PageServer.users_here("test_page")
       assert ["john"] == users
     end

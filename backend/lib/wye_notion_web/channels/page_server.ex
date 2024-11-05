@@ -97,12 +97,6 @@ defmodule WyeNotion.PageServer do
 
   @impl true
   def handle_call({:add_user, user}, _from, %{users: users} = state) do
-    new_state = %{state | users: MapSet.put(users, user)}
-
-    if MapSet.member?(users, user) do
-      {:reply, {:error, :user_already_present}, new_state}
-    else
-      {:reply, :ok, new_state}
-    end
+    {:reply, :ok, %{state | users: MapSet.put(users, user)}}
   end
 end

@@ -12,20 +12,15 @@ defmodule WyeNotionWeb.PageChannel do
   def join("page:" <> slug, %{"username" => username}, socket) do
     {:ok, %Page{content: content}} = Page.insert_or_get(slug)
 
-    case PageServer.add_user(slug, username) do
-      :ok ->
-        send(self(), :broadcast_user_list)
+    PageServer.add_user(slug, username)
+    send(self(), :broadcast_user_list)
 
-        assigns =
-          assign(socket,
-            on_terminate: fn -> PageServer.remove_user(slug, username) end
-          )
+    assigns =
+      assign(socket,
+        on_terminate: fn -> PageServer.remove_user(slug, username) end
+      )
 
-        {:ok, content, assigns}
-
-      {:error, reason} ->
-        {:error, %{reason: reason}}
-    end
+    {:ok, content, assigns}
   end
 
   @impl true

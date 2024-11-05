@@ -55,6 +55,12 @@ defmodule WyeNotionWeb.PageChannelTest do
     test "joining an arbitrary topic returns a not found error", %{socket: socket} do
       assert {:error, %{reason: "not found"}} == subscribe_and_join(socket, PageChannel, "topic")
     end
+
+    test "joining with the same topic and username is idempotent", %{socket: socket} do
+      subscribe_and_join(socket, PageChannel, "page:slug", %{username: "juan"})
+      subscribe_and_join(socket, PageChannel, "page:slug", %{username: "juan"})
+      assert_broadcast "user_list", %{body: ["juan"]}
+    end
   end
 
   describe "handle_in/3 with new_change" do
