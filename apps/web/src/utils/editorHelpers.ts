@@ -1,10 +1,15 @@
-import { CustomElement, CustomEditor, Mark } from '@/@types/editable';
+import {
+  CustomElement,
+  CustomEditor,
+  Mark,
+  BlockType,
+} from '@/@types/editable';
 import { nanoid } from 'nanoid';
-import { Editor, Operation } from 'slate';
+import { Editor, Operation, Transforms } from 'slate';
 
 const generateId = () => nanoid(16);
 
-const withNodeId = (editor: Editor) => {
+const withNodeId = <T extends CustomEditor>(editor: T): T => {
   const { apply } = editor;
 
   editor.apply = (op) => {
@@ -35,4 +40,29 @@ const toggleMark = (editor: CustomEditor, format: Mark) => {
   }
 };
 
-export { isMarkActive, toggleMark, withNodeId };
+const withNormalization = <T extends CustomEditor>(editor: T): T => {
+  const { normalizeNode } = editor;
+
+  editor.normalizeNode = (entry) => {
+    const [node] = entry;
+
+    if (!Editor.isEditor(node) || node.children.length > 0)
+      return normalizeNode(entry);
+
+    Transforms.insertNodes(
+      editor,
+      {
+        id: generateId(),
+        type: BlockType.Paragraph,
+        children: [{ text: '' }],
+      },
+      {
+        at: [0],
+      }
+    );
+  };
+
+  return editor;
+};
+
+export { isMarkActive, toggleMark, withNodeId, withNormalization };

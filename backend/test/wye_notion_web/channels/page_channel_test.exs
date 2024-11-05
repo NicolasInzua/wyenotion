@@ -27,18 +27,6 @@ defmodule WyeNotionWeb.PageChannelTest do
       assert [%Page{slug: "slug", content: nil}] = Repo.all(Page)
     end
 
-    test "joining an existing page returns its content", %{socket: socket} do
-      Repo.insert!(%Page{slug: "slug", content: "content"})
-
-      assert {:ok, "content", _} =
-               subscribe_and_join(socket, PageChannel, "page:slug", %{username: "juan"})
-    end
-
-    test "joining a new page returns nil", %{socket: socket} do
-      assert {:ok, nil, _} =
-               subscribe_and_join(socket, PageChannel, "page:slug", %{username: "juan"})
-    end
-
     test "joining an existing page does not insert it into the database", %{socket: socket} do
       page = Repo.insert!(%Page{slug: "slug", content: nil})
 
@@ -63,7 +51,7 @@ defmodule WyeNotionWeb.PageChannelTest do
     end
   end
 
-  describe "handle_in/3 with new_change" do
+  describe "handle_in/3 with y_update" do
     setup(%{socket: socket}) do
       {:ok, _, socket} =
         subscribe_and_join(socket, PageChannel, "page:slug", %{username: "juan"})
@@ -72,16 +60,21 @@ defmodule WyeNotionWeb.PageChannelTest do
     end
 
     test "the payload is broadcasted", %{socket: socket} do
-      push(socket, "new_change", %{"body" => "body"})
-
-      assert_broadcast "new_change", %{body: "body"}
-    end
-
-    test "the content of the page is updated", %{socket: socket} do
-      ref = push(socket, "new_change", %{"body" => "body"})
+      serialized_update = "1,2,3"
+      ref = push(socket, "y_update", serialized_update)
 
       assert_reply ref, :ok
-      assert %Page{slug: "slug", content: "body"} = Repo.get_by!(Page, slug: "slug")
+      assert_broadcast "y_update_broadcasted", %{serialized_update: ^serialized_update}
+    end
+
+    test "the state_as_update of the page is updated", %{socket: socket} do
+      serialized_update = "1,2,3"
+      ref = push(socket, "y_update", serialized_update)
+
+      assert_reply ref, :ok
+
+      assert %Page{slug: "slug", state_as_update: ^serialized_update} =
+               Repo.get_by!(Page, slug: "slug")
     end
   end
 

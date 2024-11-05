@@ -62,13 +62,29 @@ defmodule WyeNotion.PageTest do
 
       new_content = "updated #{content}"
 
-      assert {:ok, [affected_rows: 1]} == Page.update_content("slug", new_content)
+      assert {:ok, affected_rows: 1} == Page.update_content("slug", new_content)
 
       assert %Page{content: ^new_content} = Repo.get(Page, id)
     end
 
     test "returns :ok with affected rows set to 0 when there is no page with the given slug" do
-      assert {:ok, [affected_rows: 0]} == Page.update_content("slug", "content")
+      assert {:ok, affected_rows: 0} == Page.update_content("slug", "content")
+    end
+  end
+
+  describe "update_state_as_update/2" do
+    test "updates the state as an update of the page with the given slug and returns ok with affected rows set to 1" do
+      {:ok, %Page{id: id}} = Repo.insert(@valid_page)
+
+      new_state_as_update = <<1, 2, 3, 4>>
+
+      assert {:ok, affected_rows: 1} == Page.update_state_as_update("slug", new_state_as_update)
+
+      assert %Page{state_as_update: ^new_state_as_update} = Repo.get(Page, id)
+    end
+
+    test "returns :ok with no affected rows when no page matches the given slug" do
+      assert {:ok, affected_rows: 0} == Page.update_state_as_update("slug", <<1, 2, 3>>)
     end
   end
 end

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { createEditor, InsertTextOperation, SplitNodeOperation } from 'slate';
 import { isMarkActive, toggleMark, withNodeId } from './editorHelpers';
 import { nanoid } from 'nanoid';
-import { BlockType, CustomElement } from '../@types/editable';
+import { BlockType, CustomElement } from '@/@types/editable';
 
 describe('isMarkActive', () => {
   const editor = createEditor();

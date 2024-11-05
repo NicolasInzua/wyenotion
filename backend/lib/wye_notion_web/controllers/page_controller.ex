@@ -12,7 +12,7 @@ defmodule WyeNotionWeb.PageController do
     else
       json(
         conn,
-        Jason.decode!(page.content)
+        page.state_as_update
       )
     end
   end

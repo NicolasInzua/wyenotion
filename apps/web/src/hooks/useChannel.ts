@@ -23,12 +23,17 @@ interface Channel {
 interface ChannelOptions {
   username: string;
   onJoin?: (payload: string) => void;
-  onError?: (error: string) => void;
+  onError?: (error: ChannelError) => void;
   onMessage?: (event: string, payload: unknown) => void;
 }
 
+type ChannelError = {
+  reason: string;
+};
+
 const defaultOnJoin = () => console.log('Channel joined');
-const defaultOnError = () => console.error('Channel error');
+const defaultOnError = (err: ChannelError) =>
+  console.error('Channel error:', err.reason);
 
 export function useChannel(
   topic: string,
@@ -62,8 +67,6 @@ export function useChannel(
   const pushChannelEvent = (event: string, payload: unknown) => {
     if (channel && payload) {
       channel.push(event, payload);
-    } else {
-      throw 'Channel not initialized';
     }
   };
 

@@ -45,8 +45,14 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { nanoid } from 'nanoid';
-import { withNodeId, toggleMark } from '@/utils/editorHelpers';
 import isHotKey from 'is-hotkey';
+import {
+  toggleMark,
+  withNormalization,
+  withNodeId,
+} from '@/utils/editorHelpers';
+import { withYHistory, withYjs, YjsEditor } from '@slate-yjs/core';
+import { useYDoc } from '@/hooks/useYDoc';
 
 declare module 'slate' {
   interface CustomTypes {
@@ -72,23 +78,46 @@ const INITIAL_VALUE: RichText = [
 ];
 
 interface EditorProps {
-  initialContent: RichText | null;
-  onChange: (value: RichText) => void;
+  initialContent: string;
   handleRef: RefObject<EditorHandle>;
+  onUpdate: (update: unknown) => void;
 }
 
 export type EditorHandle = {
-  replaceContent: (message: RichText) => void;
+  applyUpdate: (update: string) => void;
 };
-
-const useEditor = () => useState(() => withNodeId(withReact(createEditor())));
 
 export function TextEditor({
   initialContent,
-  onChange,
+  onUpdate,
   handleRef,
 }: EditorProps) {
-  const [editor] = useEditor();
+  const { sharedType, applyUpdate } = useYDoc(onUpdate, initialContent);
+
+  useImperativeHandle(handleRef, () => ({
+    applyUpdate,
+  }));
+
+  const editor = useMemo(() => {
+    return withNodeId(
+      withReact(
+        withNormalization(
+          withYHistory(
+            withYjs(createEditor(), sharedType, { autoConnect: false })
+          )
+        )
+      )
+    );
+  }, [sharedType]);
+
+  useEffect(() => {
+    YjsEditor.connect(editor);
+
+    return () => {
+      YjsEditor.disconnect(editor);
+    };
+  }, [editor]);
+
   const [activeId, setActiveId] = useState<string | null>(null);
   const id = useId();
 
@@ -100,13 +129,6 @@ export function TextEditor({
   const renderElement = useCallback((props: RenderElementProps) => {
     return <SortableElement {...props} />;
   }, []);
-
-  useImperativeHandle(handleRef, () => ({
-    replaceContent: (message) => {
-      Transforms.removeNodes(editor, { at: [0] });
-      Transforms.insertNodes(editor, message);
-    },
-  }));
 
   const items = useMemo(() => {
     return editor.children.map((element) => (element as CustomElement).id);
@@ -148,11 +170,7 @@ export function TextEditor({
   ) as CustomElement;
 
   return (
-    <Slate
-      editor={editor}
-      initialValue={initialContent || INITIAL_VALUE}
-      onChange={onChange}
-    >
+    <Slate editor={editor} initialValue={INITIAL_VALUE}>
       <DndContext
         id={id}
         onDragStart={handleDragStart}
@@ -297,7 +315,7 @@ function Element({ children }: RenderElementProps) {
 }
 
 function DragOverlayContent({ element }: { element: CustomElement }) {
-  const [editor] = useEditor();
+  const editor = withNodeId(withReact(createEditor()));
   const value = structuredClone(element);
 
   return (

@@ -19,13 +19,12 @@ export default function Home({
   const username = useMemo(() => `user-${crypto.randomUUID()}`, []);
 
   const onMessage = useCallback((event: string, payload: unknown) => {
-    if (
-      event === 'user_list' &&
-      typeof payload === 'object' &&
-      payload !== null &&
-      'body' in payload
-    )
-      setCurrentUserNames(payload.body as string[]);
+    const objPayload = payload as object;
+    if (event === 'user_list' && 'body' in objPayload)
+      setCurrentUserNames(objPayload.body as string[]);
+    if (event === 'y_update_broadcasted' && 'serialized_update' in objPayload) {
+      handleRef.current?.applyUpdate(objPayload.serialized_update as string);
+    }
   }, []);
 
   const { pushChannelEvent } = useChannel(`page:${slug}`, {
@@ -33,9 +32,8 @@ export default function Home({
     onMessage,
   });
 
-  const onChange = (value: unknown) => {
-    const content = JSON.stringify(value);
-    pushChannelEvent('new_change', { body: content });
+  const onUpdate = (update: unknown) => {
+    pushChannelEvent('y_update', `${update}`);
   };
 
   return (
@@ -48,9 +46,9 @@ export default function Home({
           <UserListTooltip userNames={currentUserNames} />
         </div>
         <TextEditor
-          onChange={onChange}
-          handleRef={handleRef}
           initialContent={pageContent}
+          handleRef={handleRef}
+          onUpdate={onUpdate}
         />
       </main>
     </div>

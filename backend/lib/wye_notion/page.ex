@@ -13,6 +13,7 @@ defmodule WyeNotion.Page do
   schema "pages" do
     field(:slug, :string)
     field(:content, :string)
+    field(:state_as_update, :binary)
 
     timestamps(type: :utc_datetime)
   end
@@ -38,6 +39,16 @@ defmodule WyeNotion.Page do
       |> update(set: [content: ^content])
       |> Repo.update_all([])
 
-    {:ok, [affected_rows: affected_rows]}
+    {:ok, affected_rows: affected_rows}
+  end
+
+  def update_state_as_update(slug, state_as_update) do
+    {affected_rows, _} =
+      Page
+      |> where(slug: ^slug)
+      |> update(set: [state_as_update: ^state_as_update])
+      |> Repo.update_all([])
+
+    {:ok, affected_rows: affected_rows}
   end
 end
