@@ -25,6 +25,11 @@ export default function Home({
     if (event === 'y_update_broadcasted' && 'serialized_update' in objPayload) {
       handleRef.current?.applyUpdate(objPayload.serialized_update as string);
     }
+    if (event === 'y_awareness_update' && 'serialized_update' in objPayload) {
+      handleRef.current?.updateAwareness(
+        objPayload.serialized_update as object
+      );
+    }
   }, []);
 
   const { pushChannelEvent } = useChannel(`page:${slug}`, {
@@ -32,8 +37,10 @@ export default function Home({
     onMessage,
   });
 
-  const onUpdate = (update: unknown) => {
-    pushChannelEvent('y_update', `${update}`);
+  const onUpdate = (event: string, update: unknown) => {
+    console.log('onUpdate', event, update);
+
+    pushChannelEvent(event, `${update}`);
   };
 
   return (
@@ -47,6 +54,7 @@ export default function Home({
         </div>
         <TextEditor
           initialContent={pageContent}
+          currentUser={username}
           handleRef={handleRef}
           onUpdate={onUpdate}
         />

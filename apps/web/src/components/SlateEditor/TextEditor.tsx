@@ -51,8 +51,14 @@ import {
   withNormalization,
   withNodeId,
 } from '@/utils/editorHelpers';
-import { withYHistory, withYjs, YjsEditor } from '@slate-yjs/core';
+import { withYjs, YjsEditor, withCursors } from '@slate-yjs/core';
 import { useYDoc } from '@/hooks/useYDoc';
+import dynamic from 'next/dynamic';
+
+const Cursors = dynamic(
+  () => import('@/components/SlateEditor/Cursors').then((mod) => mod.Cursors),
+  { ssr: false }
+);
 
 declare module 'slate' {
   interface CustomTypes {
@@ -80,30 +86,43 @@ const INITIAL_VALUE: RichText = [
 interface EditorProps {
   initialContent: string;
   handleRef: RefObject<EditorHandle>;
-  onUpdate: (update: unknown) => void;
+  onUpdate: (event: string, update: unknown) => void;
+  currentUser: string;
 }
+
+import * as awarenessProtocol from 'y-protocols/awareness';
 
 export type EditorHandle = {
   applyUpdate: (update: string) => void;
+  updateAwareness: (update: object) => void;
 };
 
 export function TextEditor({
   initialContent,
   onUpdate,
   handleRef,
+  currentUser,
 }: EditorProps) {
-  const { sharedType, applyUpdate } = useYDoc(onUpdate, initialContent);
+  const { sharedType, awareness, applyUpdate } = useYDoc(
+    onUpdate,
+    initialContent,
+    currentUser
+  );
 
   useImperativeHandle(handleRef, () => ({
     applyUpdate,
+    // updateAwareness: (update: object) => awarenessProtocol.applyAwarenessUpdate(awareness,update, currentUser),
+    updateAwareness: (update: object) =>
+      console.log('update awareness', update),
   }));
 
   const editor = useMemo(() => {
     return withNodeId(
       withReact(
         withNormalization(
-          withYHistory(
-            withYjs(createEditor(), sharedType, { autoConnect: false })
+          withCursors(
+            withYjs(createEditor(), sharedType, { autoConnect: false }),
+            awareness
           )
         )
       )
@@ -178,20 +197,22 @@ export function TextEditor({
         onDragCancel={handleDragCancel}
       >
         <SortableContext items={items} strategy={verticalListSortingStrategy}>
-          <Editable
-            renderElement={renderElement}
-            renderLeaf={renderLeaf}
-            className="h-screen rounded-lg border-stone-100 border-2"
-            onKeyDown={(event) => {
-              for (const hotkey in HOTKEYS) {
-                if (isHotKey(hotkey, event)) {
-                  event.preventDefault();
-                  const mark = HOTKEYS[hotkey];
-                  toggleMark(editor, mark);
+          <Cursors>
+            <Editable
+              renderElement={renderElement}
+              renderLeaf={renderLeaf}
+              className="h-screen rounded-lg border-stone-100 border-2"
+              onKeyDown={(event) => {
+                for (const hotkey in HOTKEYS) {
+                  if (isHotKey(hotkey, event)) {
+                    event.preventDefault();
+                    const mark = HOTKEYS[hotkey];
+                    toggleMark(editor, mark);
+                  }
                 }
-              }
-            }}
-          />
+              }}
+            />
+          </Cursors>
         </SortableContext>
         <DragOverlay
           style={{

@@ -61,4 +61,10 @@ defmodule WyeNotionWeb.PageChannel do
     broadcast(socket, "y_update_broadcasted", %{serialized_update: serialized_update})
     {:reply, :ok, socket}
   end
+
+  @impl true
+  def handle_in("y_awareness_update", serialized_update, socket) do
+    broadcast(socket, "awareness_update_broadcasted", %{serialized_update: serialized_update})
+    {:reply, :ok, socket}
+  end
 end
