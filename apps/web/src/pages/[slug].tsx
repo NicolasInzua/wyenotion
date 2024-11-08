@@ -8,15 +8,16 @@ import type {
   InferGetServerSidePropsType,
 } from 'next';
 import { ApiError, api } from '@/services/api';
+import { useUser } from '@/contexts/UserContext';
 
 export default function Home({
   slug,
   pageContent,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const { username } = useUser();
   const handleRef = useRef<EditorHandle>(null);
 
   const [currentUserNames, setCurrentUserNames] = useState<string[]>([]);
-  const username = useMemo(() => `user-${crypto.randomUUID()}`, []);
 
   const onMessage = useCallback((event: string, payload: unknown) => {
     const objPayload = payload as object;
