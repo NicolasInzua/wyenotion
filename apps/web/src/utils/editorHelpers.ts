@@ -65,4 +65,18 @@ const withNormalization = <T extends CustomEditor>(editor: T): T => {
   return editor;
 };
 
-export { isMarkActive, toggleMark, withNodeId, withNormalization };
+const getRandomTransparentColor = (opacity = 0.4) => {
+  const r = Math.floor(Math.random() * 256);
+  const g = Math.floor(Math.random() * 256);
+  const b = Math.floor(Math.random() * 256);
+
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+};
+
+export {
+  isMarkActive,
+  toggleMark,
+  withNodeId,
+  withNormalization,
+  getRandomTransparentColor,
+};

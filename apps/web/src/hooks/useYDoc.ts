@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as Y from 'yjs';
 import * as awarenessProtocol from 'y-protocols/awareness';
 
@@ -15,8 +15,7 @@ export interface YDoc {
 
 export function useYDoc(
   onUpdate: (event: string, update: unknown) => void,
-  initialContent: string,
-  currentUser?: string
+  initialContent: string
 ): YDoc {
   const [yDoc, setYDoc] = useState<Y.Doc>(new Y.Doc());
   const sharedType = yDoc.get('content', Y.XmlText);
@@ -43,23 +42,15 @@ export function useYDoc(
     return () => {
       ydoc.off('update', handleUpdate);
     };
-  }, [onUpdate]);
+  }, [onUpdate, yDoc]);
 
   // useEffect(() => {
-  //   if (!currentUser) return;
-
-  //   awareness.setLocalStateField('user', currentUser);
-
-  //   const handleUpdate = ({
-  //     added,
-  //     updated,
-  //     removed,
-  //   }: {
-  //     added: number[];
-  //     updated: number[];
-  //     removed: number[];
-  //   }) => {
-  //     onUpdate('y_awareness_update', { added, updated, removed });
+  //   const handleUpdate = () => {
+  //     const updateToUint8Array = awarenessProtocol.encodeAwarenessUpdate(
+  //       awareness,
+  //       [awareness.clientID]
+  //     );
+  //     onUpdate('y_awareness_update', updateToUint8Array);
   //   };
 
   //   awareness.on('update', handleUpdate);
@@ -67,9 +58,9 @@ export function useYDoc(
   //     awareness.off('update', handleUpdate);
   //     awareness.destroy();
   //   };
-  // }, [currentUser, onUpdate, awareness]);
+  // }, [onUpdate, awareness]);
 
-  awareness.on('update', (update: any) => {
+  awareness.on('update', () => {
     const updateToUint8Array = awarenessProtocol.encodeAwarenessUpdate(
       awareness,
       [awareness.clientID]

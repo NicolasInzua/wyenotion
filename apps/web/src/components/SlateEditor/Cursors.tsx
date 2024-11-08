@@ -3,16 +3,16 @@ import {
   useRemoteCursorOverlayPositions,
 } from '@slate-yjs/react';
 
-import { CSSProperties, PropsWithChildren, useRef } from 'react';
+import { CSSProperties, useRef } from 'react';
 
 export type Cursor = {
   name: string;
   color: string;
 };
 
-interface CursorsProps extends PropsWithChildren {}
+type CaretProps = Pick<CursorOverlayData<Cursor>, 'caretPosition' | 'data'>;
 
-export function Cursors({ children }: CursorsProps) {
+export function Cursors({ children }: { children: React.ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [cursors] = useRemoteCursorOverlayPositions({ containerRef });
 
@@ -20,8 +20,11 @@ export function Cursors({ children }: CursorsProps) {
     <div ref={containerRef}>
       {children}
       {cursors.map((cursor) => (
-        <p key={cursor.clientId}>cursor</p>
-        // <Selection key={cursor.clientId} {...cursor} />
+        <Selection
+          key={cursor.clientId}
+          {...cursor}
+          data={cursor.data as Cursor}
+        />
       ))}
     </div>
   );
@@ -32,9 +35,7 @@ function Selection({
   selectionRects,
   caretPosition,
 }: CursorOverlayData<Cursor>) {
-  if (!data) {
-    return null;
-  }
+  if (!data) return null;
 
   const selectionStyle: CSSProperties = {
     backgroundColor: data.color,
@@ -45,7 +46,7 @@ function Selection({
       {selectionRects.map((position, i) => (
         <div
           style={{ ...selectionStyle, ...position }}
-          className="absolute pointer-events-none opacity-20 "
+          className="absolute pointer-events-none opacity-10 "
           key={i}
         />
       ))}
@@ -53,8 +54,6 @@ function Selection({
     </>
   );
 }
-
-type CaretProps = Pick<CursorOverlayData<Cursor>, 'caretPosition' | 'data'>;
 
 function Caret({ caretPosition, data }: CaretProps) {
   const caretStyle: CSSProperties = {
@@ -68,9 +67,9 @@ function Caret({ caretPosition, data }: CaretProps) {
   };
 
   return (
-    <div style={caretStyle} className="absolute w-1">
+    <div style={caretStyle} className="absolute w-0.5">
       <div
-        className="absolute font-normal bg-black whitespace-nowrap top-0 rounded-md px-1 py-2 pointer-events-none "
+        className="absolute font-thin italic bg-black whitespace-nowrap top-0 rounded-sm px-1 py-1 pointer-events-none "
         style={labelStyle}
       >
         {data?.name}

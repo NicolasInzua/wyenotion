@@ -12,7 +12,6 @@ import {
   Editable,
   ReactEditor,
   Slate,
-  useFocused,
   useSlateStatic,
   withReact,
 } from 'slate-react';
@@ -50,6 +49,7 @@ import {
   toggleMark,
   withNormalization,
   withNodeId,
+  getRandomTransparentColor,
 } from '@/utils/editorHelpers';
 import { withYjs, YjsEditor, withCursors } from '@slate-yjs/core';
 import { useYDoc } from '@/hooks/useYDoc';
@@ -90,8 +90,6 @@ interface EditorProps {
   currentUser: string;
 }
 
-import * as awarenessProtocol from 'y-protocols/awareness';
-
 export type EditorHandle = {
   applyUpdate: (update: string) => void;
   updateAwareness: (update: string) => void;
@@ -105,8 +103,7 @@ export function TextEditor({
 }: EditorProps) {
   const { sharedType, awareness, applyUpdate, updateAwareness } = useYDoc(
     onUpdate,
-    initialContent,
-    currentUser
+    initialContent
   );
 
   useImperativeHandle(handleRef, () => ({
@@ -120,12 +117,13 @@ export function TextEditor({
         withNormalization(
           withCursors(
             withYjs(createEditor(), sharedType, { autoConnect: false }),
-            awareness
+            awareness,
+            { data: { name: currentUser, color: getRandomTransparentColor() } }
           )
         )
       )
     );
-  }, [sharedType]);
+  }, [sharedType, awareness, currentUser]);
 
   useEffect(() => {
     YjsEditor.connect(editor);
@@ -195,22 +193,24 @@ export function TextEditor({
         onDragCancel={handleDragCancel}
       >
         <SortableContext items={items} strategy={verticalListSortingStrategy}>
-          <Cursors>
-            <Editable
-              renderElement={renderElement}
-              renderLeaf={renderLeaf}
-              className="h-screen rounded-lg border-stone-100 border-2"
-              onKeyDown={(event) => {
-                for (const hotkey in HOTKEYS) {
-                  if (isHotKey(hotkey, event)) {
-                    event.preventDefault();
-                    const mark = HOTKEYS[hotkey];
-                    toggleMark(editor, mark);
+          <div className="relative">
+            <Cursors>
+              <Editable
+                renderElement={renderElement}
+                renderLeaf={renderLeaf}
+                className="h-screen rounded-lg border-stone-100 border-2"
+                onKeyDown={(event) => {
+                  for (const hotkey in HOTKEYS) {
+                    if (isHotKey(hotkey, event)) {
+                      event.preventDefault();
+                      const mark = HOTKEYS[hotkey];
+                      toggleMark(editor, mark);
+                    }
                   }
-                }
-              }}
-            />
-          </Cursors>
+                }}
+              />
+            </Cursors>
+          </div>
         </SortableContext>
         <DragOverlay
           style={{
@@ -255,7 +255,6 @@ const SortableElement = (props: RenderElementProps) => {
 function FloatingToolbar() {
   const [isOpen, setIsOpen] = useState(false);
   const editor = useSlateStatic();
-  const focused = useFocused();
 
   const { refs, context, floatingStyles } = useFloating({
     placement: 'top',
@@ -269,7 +268,7 @@ function FloatingToolbar() {
   useEffect(() => {
     const updateToolbarVisibility = () => {
       const { selection } = editor;
-      if (!selection || !focused || Range.isCollapsed(selection)) {
+      if (!selection || Range.isCollapsed(selection)) {
         setIsOpen(false);
         return;
       }
@@ -289,7 +288,7 @@ function FloatingToolbar() {
     return () => {
       editor.onChange = onChange;
     };
-  }, [refs, editor, focused]);
+  }, [refs, editor]);
 
   return (
     <>
