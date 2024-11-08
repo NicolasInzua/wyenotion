@@ -15,13 +15,12 @@ interface CursorsProps extends PropsWithChildren {}
 export function Cursors({ children }: CursorsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [cursors] = useRemoteCursorOverlayPositions({ containerRef });
-  console.log('cursors', cursors);
 
   return (
     <div ref={containerRef}>
       {children}
       {cursors.map((cursor) => (
-        <p>cursor</p>
+        <p key={cursor.clientId}>cursor</p>
         // <Selection key={cursor.clientId} {...cursor} />
       ))}
     </div>

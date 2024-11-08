@@ -2,9 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import * as Y from 'yjs';
 import * as awarenessProtocol from 'y-protocols/awareness';
 
+function toUint8Array(str: string): Uint8Array {
+  const update_contents = str.split(',').map((s) => parseInt(s));
+  return new Uint8Array(update_contents);
+}
 export interface YDoc {
   sharedType: Y.XmlText;
   awareness: awarenessProtocol.Awareness;
+  updateAwareness: (update: string) => void;
   applyUpdate: (update: string) => void;
 }
 
@@ -22,6 +27,7 @@ export function useYDoc(
   useEffect(() => {
     const yDoc = new Y.Doc();
     setYDoc(yDoc);
+    setAwareness(new awarenessProtocol.Awareness(yDoc));
     if (!initialContent) return;
     applyUpdate(yDoc, initialContent);
   }, [initialContent]);
@@ -39,39 +45,54 @@ export function useYDoc(
     };
   }, [onUpdate]);
 
-  useEffect(() => {
-    if (!currentUser) return;
+  // useEffect(() => {
+  //   if (!currentUser) return;
 
-    awareness.setLocalStateField('user', currentUser);
+  //   awareness.setLocalStateField('user', currentUser);
 
-    const handleUpdate = ({
-      added,
-      updated,
-      removed,
-    }: {
-      added: number[];
-      updated: number[];
-      removed: number[];
-    }) => {
-      onUpdate('y_awareness_update', { added, updated, removed });
-    };
+  //   const handleUpdate = ({
+  //     added,
+  //     updated,
+  //     removed,
+  //   }: {
+  //     added: number[];
+  //     updated: number[];
+  //     removed: number[];
+  //   }) => {
+  //     onUpdate('y_awareness_update', { added, updated, removed });
+  //   };
 
-    awareness.on('update', handleUpdate);
-    return () => {
-      awareness.off('update', handleUpdate);
-      awareness.destroy();
-    };
-  }, [currentUser, onUpdate]);
+  //   awareness.on('update', handleUpdate);
+  //   return () => {
+  //     awareness.off('update', handleUpdate);
+  //     awareness.destroy();
+  //   };
+  // }, [currentUser, onUpdate, awareness]);
+
+  awareness.on('update', (update: any) => {
+    const updateToUint8Array = awarenessProtocol.encodeAwarenessUpdate(
+      awareness,
+      [awareness.clientID]
+    );
+    onUpdate('y_awareness_update', updateToUint8Array);
+  });
+
+  const updateAwareness = (update: string) => {
+    awarenessProtocol.applyAwarenessUpdate(
+      awareness,
+      toUint8Array(update),
+      awareness.clientID
+    );
+  };
 
   const applyUpdate = (yDoc: Y.Doc, update: string) => {
-    const update_contents = update.split(',').map((s) => parseInt(s));
-    const parsed_update = new Uint8Array(update_contents);
-    Y.applyUpdate(yDoc, parsed_update);
+    Y.applyUpdate(yDoc, toUint8Array(update));
   };
 
   return {
     sharedType: sharedType,
     awareness,
     applyUpdate: (update) => applyUpdate(yDoc, update),
+    updateAwareness,
   };
 }

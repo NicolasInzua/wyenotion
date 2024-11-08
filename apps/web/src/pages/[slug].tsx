@@ -25,9 +25,13 @@ export default function Home({
     if (event === 'y_update_broadcasted' && 'serialized_update' in objPayload) {
       handleRef.current?.applyUpdate(objPayload.serialized_update as string);
     }
-    if (event === 'y_awareness_update' && 'serialized_update' in objPayload) {
+
+    if (
+      event === 'awareness_update_broadcasted' &&
+      'serialized_update' in objPayload
+    ) {
       handleRef.current?.updateAwareness(
-        objPayload.serialized_update as object
+        objPayload.serialized_update as string
       );
     }
   }, []);
@@ -38,8 +42,6 @@ export default function Home({
   });
 
   const onUpdate = (event: string, update: unknown) => {
-    console.log('onUpdate', event, update);
-
     pushChannelEvent(event, `${update}`);
   };
 

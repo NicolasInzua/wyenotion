@@ -94,7 +94,7 @@ import * as awarenessProtocol from 'y-protocols/awareness';
 
 export type EditorHandle = {
   applyUpdate: (update: string) => void;
-  updateAwareness: (update: object) => void;
+  updateAwareness: (update: string) => void;
 };
 
 export function TextEditor({
@@ -103,7 +103,7 @@ export function TextEditor({
   handleRef,
   currentUser,
 }: EditorProps) {
-  const { sharedType, awareness, applyUpdate } = useYDoc(
+  const { sharedType, awareness, applyUpdate, updateAwareness } = useYDoc(
     onUpdate,
     initialContent,
     currentUser
@@ -111,9 +111,7 @@ export function TextEditor({
 
   useImperativeHandle(handleRef, () => ({
     applyUpdate,
-    // updateAwareness: (update: object) => awarenessProtocol.applyAwarenessUpdate(awareness,update, currentUser),
-    updateAwareness: (update: object) =>
-      console.log('update awareness', update),
+    updateAwareness,
   }));
 
   const editor = useMemo(() => {
