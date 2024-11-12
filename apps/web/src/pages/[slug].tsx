@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useChannel } from '@/hooks/useChannel';
 import { TextEditor } from '@/components/SlateEditor/TextEditor';
 import { type EditorHandle } from '@/components/SlateEditor/TextEditor';

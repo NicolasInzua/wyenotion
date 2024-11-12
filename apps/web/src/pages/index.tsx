@@ -1,19 +1,43 @@
 import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+
+const USERNAME_MIN_LENGTH = 3;
 
 export default function Home() {
   const router = useRouter();
   const { setUsername } = useUser();
   const [localUsername, setLocalUsername] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const isDisabled =
+    !!error || localUsername.trim().length < USERNAME_MIN_LENGTH || isLoading;
+
+  useEffect(() => {
+    document.body.classList.add(
+      'bg-gradient-to-b',
+      'from-red-500',
+      'to-neutral-950'
+    );
+    return () => {
+      document.body.classList.remove(
+        'bg-gradient-to-b',
+        'from-red-500',
+        'to-red-600'
+      );
+    };
+  }, []);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (error) return;
+    if (error || localUsername.trim().length < USERNAME_MIN_LENGTH) return;
 
-    setUsername(localUsername);
-    router.push('/lobby');
+    setIsLoading(true);
+    setUsername(localUsername.trim());
+    await router.push('/lobby');
+    setIsLoading(false);
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,35 +45,56 @@ export default function Home() {
 
     setLocalUsername(newValue);
 
-    if (newValue.trim() === '') {
-      setError('Empty username not allowed');
+    if (newValue.trim().length < USERNAME_MIN_LENGTH) {
+      setError(
+        `Username must be at least ${USERNAME_MIN_LENGTH} characters long`
+      );
       return;
     }
-
-    setError('');
+    setError(null);
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto mt-60">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white shadow-lg shadow-slate-350 rounded-lg px-6 py-8"
+    <div className="flex items-center justify-center h-screen">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="bg-white shadow-lg rounded-md p-8 w-full max-w-md"
       >
-        <h1 className="text-3xl font-bold mb-5">Welcome to WyeNotion</h1>
-        <p className="mb-5">To get started, please enter your name:</p>
-        <input
-          type="text"
-          placeholder="Enter your username"
-          name="username"
-          value={localUsername}
-          onChange={handleChange}
-          className="w-full rounded-md border-2 border-slate-100 mb-2 p-2"
-        />
-        {error && <p className="text-red-500 italic mb-2">{error}</p>}
-        <button className="w-full text-md bg-blue-500 hover:bg-blue-600 text-white rounded-md py-2 px-4">
-          Start Editing
-        </button>
-      </form>
+        <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+          Welcome to WyeNotion
+        </h1>
+        <p className="mb-5 text-gray-600">
+          To get started, please enter your <strong>username</strong>:
+        </p>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Enter your username"
+            name="username"
+            value={localUsername}
+            onChange={handleChange}
+            className="w-full rounded-md border-2 mb-1 border-slate-100 p-3 focus:outline-none  focus:border-slate-400"
+          />
+          <div className="h-6 mb-2 ml-1">
+            {error && <p className="text-sm text-red-500 italic">{error}</p>}
+          </div>
+          <button
+            type="submit"
+            className={`w-full text-md bg-red-600 hover:bg-red-600 text-white rounded-md py-3 px-6 ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={isDisabled}
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <div className="w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin" />
+              </div>
+            ) : (
+              <p className="font-bold">Start Editing</p>
+            )}
+          </button>
+        </form>
+      </motion.div>
     </div>
   );
 }
