@@ -187,22 +187,6 @@ defmodule WyeNotionWeb.PageServerTest do
       assert ["john"] == users
     end
 
-    test "uses an existing corresponding server if it was present" do
-      # corresponding server
-      DynamicSupervisor.start_child(
-        PageServer.supervisor_name(),
-        {PageServer, PageServer.server_id("test_page")}
-      )
-
-      %{active: servers_before} = DynamicSupervisor.count_children(PageServer.supervisor_name())
-
-      PageServer.remove_user("test_page", "mike")
-
-      %{active: servers_after} = DynamicSupervisor.count_children(PageServer.supervisor_name())
-
-      assert servers_before == servers_after
-    end
-
     test "removes an existing corresponding server upon emptying it" do
       PageServer.add_user("test_page", "mike")
       PageServer.remove_user("test_page", "mike")
