@@ -13,6 +13,8 @@ export function useYDoc(
   const yDoc = useRef<Y.Doc>(new Y.Doc());
   const sharedType = useRef<Y.XmlText>(yDoc.current.get('content', Y.XmlText));
 
+  onUpdate(Y.encodeStateAsUpdate(yDoc.current));
+
   useEffect(() => {
     if (!initialContent) return;
     applyUpdate(initialContent);
@@ -21,8 +23,8 @@ export function useYDoc(
   useEffect(() => {
     const ydoc = yDoc.current;
 
-    const handleUpdate = () => {
-      onUpdate(Y.encodeStateAsUpdate(ydoc)); // TODO, fullstack: send only update, not whole state
+    const handleUpdate = (update: Uint8Array) => {
+      onUpdate(update);
     };
 
     ydoc.on('update', handleUpdate);

@@ -2,6 +2,7 @@ defmodule WyeNotionWeb.PageController do
   use WyeNotionWeb, :controller
 
   alias WyeNotion.Page
+  alias WyeNotion.PageContentServer
   alias WyeNotion.Repo
 
   def show(conn, %{"slug" => slug}) do
@@ -12,7 +13,7 @@ defmodule WyeNotionWeb.PageController do
     else
       json(
         conn,
-        page.state_as_update
+        PageContentServer.state_as_stringified_update(slug)
       )
     end
   end

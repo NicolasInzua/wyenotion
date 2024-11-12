@@ -32,6 +32,13 @@ defmodule WyeNotion.Page do
     |> Repo.insert(conflict_target: [:slug], on_conflict: {:replace, [:slug]}, returning: true)
   end
 
+  def insert_or_get!(slug) do
+    %Page{}
+    |> changeset(%{"slug" => slug})
+    |> Repo.insert(conflict_target: [:slug], on_conflict: {:replace, [:slug]}, returning: true)
+    |> then(fn {:ok, page} -> page end)
+  end
+
   def update_content(slug, content) do
     {affected_rows, _} =
       Page

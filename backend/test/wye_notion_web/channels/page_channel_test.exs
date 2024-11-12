@@ -13,9 +13,9 @@ defmodule WyeNotionWeb.PageChannelTest do
 
     socket = socket(WyeNotionWeb.UserSocket, "user_id", %{some: :assign})
 
-    start_supervised!({DynamicSupervisor, name: WyeNotion.PageServer.supervisor_name()})
+    start_supervised!({DynamicSupervisor, name: WyeNotion.PageServerMaker.supervisor_name()})
 
-    start_supervised!({Registry, keys: :unique, name: WyeNotion.PageServer.registry_name()})
+    start_supervised!({Registry, keys: :unique, name: WyeNotion.PageServerMaker.registry_name()})
 
     %{socket: socket}
   end
@@ -66,16 +66,6 @@ defmodule WyeNotionWeb.PageChannelTest do
       assert_reply ref, :ok
       assert_broadcast "y_update_broadcasted", %{serialized_update: ^serialized_update}
     end
-
-    test "the state_as_update of the page is updated", %{socket: socket} do
-      serialized_update = "1,2,3"
-      ref = push(socket, "y_update", serialized_update)
-
-      assert_reply ref, :ok
-
-      assert %Page{slug: "slug", state_as_update: ^serialized_update} =
-               Repo.get_by!(Page, slug: "slug")
-    end
   end
 
   describe "terminate/2" do
@@ -95,8 +85,6 @@ defmodule WyeNotionWeb.PageChannelTest do
       subscribe_and_join(socket, PageChannel, "page:slug", %{username: "second_john"})
 
       leave(first_user_socket)
-
-      subscribe_and_join(socket, PageChannel, "page:slug", %{username: "first_john"})
 
       assert_broadcast "user_list", %{body: ["second_john"]}
     end

@@ -5,19 +5,17 @@ defmodule WyeNotionWeb.PageChannel do
 
   use WyeNotionWeb, :channel
 
-  alias WyeNotion.Page
-  alias WyeNotion.PageServer
+  alias WyeNotion.PageUserListServer
+  alias WyeNotion.PageContentServer
 
   @impl true
   def join("page:" <> slug, %{"username" => username}, socket) do
-    {:ok, _} = Page.insert_or_get(slug)
-
-    PageServer.add_user(slug, username)
+    PageUserListServer.add_user(slug, username)
     send(self(), :broadcast_user_list)
 
     assigns =
       assign(socket,
-        on_terminate: fn -> PageServer.remove_user(slug, username) end
+        on_terminate: fn -> PageUserListServer.remove_user(slug, username) end
       )
 
     {:ok, assigns}
@@ -44,7 +42,7 @@ defmodule WyeNotionWeb.PageChannel do
       socket,
       "user_list",
       %{
-        body: PageServer.users_here(slug)
+        body: PageUserListServer.users_here(slug)
       }
     )
   end
@@ -57,7 +55,7 @@ defmodule WyeNotionWeb.PageChannel do
 
   @impl true
   def handle_in("y_update", serialized_update, %{topic: "page:" <> slug} = socket) do
-    Page.update_state_as_update(slug, serialized_update)
+    PageContentServer.add_stringified_update(slug, serialized_update)
     broadcast(socket, "y_update_broadcasted", %{serialized_update: serialized_update})
     {:reply, :ok, socket}
   end
