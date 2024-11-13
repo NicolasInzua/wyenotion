@@ -1,3 +1,5 @@
+import AppProvider from '@/contexts/AppProvider';
+import { AuthGuard } from '@/auth/AuthGuard';
 import '@/styles/globals.css';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
@@ -13,7 +15,7 @@ type CustomAppProps = AppProps & {
   Component: NextPageWithLayout;
 };
 
-export default function App({ Component, pageProps }: CustomAppProps) {
+export default function App({ Component, pageProps, router }: CustomAppProps) {
   const content = 'pageList' in pageProps ? pageProps.pageList : [];
 
   return (
@@ -21,12 +23,20 @@ export default function App({ Component, pageProps }: CustomAppProps) {
       <Head>
         <title>WyeNotion</title>
       </Head>
-      <SideBarLayout
-        SideBarContent={Component.SideBarContent}
-        content={content}
-      >
-        <Component {...pageProps} />
-      </SideBarLayout>
+      <AppProvider>
+        <AuthGuard>
+          {router.asPath === '/' ? (
+            <Component {...pageProps} />
+          ) : (
+            <SideBarLayout
+              SideBarContent={Component.SideBarContent}
+              content={content}
+            >
+              <Component {...pageProps} />
+            </SideBarLayout>
+          )}
+        </AuthGuard>
+      </AppProvider>
     </>
   );
 }

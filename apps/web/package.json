@@ -20,6 +20,7 @@
     "axios": "^1.7.7",
     "is-hotkey": "^0.2.0",
     "lucide-react": "^0.439.0",
+    "motion": "^11.11.14",
     "nanoid": "^5.0.7",
     "next": "14.2.8",
     "phoenix": "^1.7.14",

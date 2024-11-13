@@ -20,7 +20,7 @@ export function useYDoc(
   const [yDoc, setYDoc] = useState<Y.Doc>(new Y.Doc());
   const sharedType = yDoc.get('content', Y.XmlText);
 
-  // onUpdate(Y.encodeStateAsUpdate(yDoc));
+  onUpdate('y_update', Y.encodeStateAsUpdate(yDoc));
   const [awareness, setAwareness] = useState<awarenessProtocol.Awareness>(
     new awarenessProtocol.Awareness(yDoc)
   );

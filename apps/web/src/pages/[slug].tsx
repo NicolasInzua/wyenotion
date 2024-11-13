@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useChannel } from '@/hooks/useChannel';
 import { TextEditor } from '@/components/SlateEditor/TextEditor';
 import { type EditorHandle } from '@/components/SlateEditor/TextEditor';
@@ -10,15 +10,16 @@ import type {
 import { ApiError, api } from '@/services/api';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useUser } from '@/contexts/UserContext';
 
 export default function Home({
   slug,
   pageContent,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const { username } = useUser();
   const handleRef = useRef<EditorHandle>(null);
 
   const [currentUserNames, setCurrentUserNames] = useState<string[]>([]);
-  const username = useMemo(() => `user-${crypto.randomUUID()}`, []);
 
   const onMessage = useCallback((event: string, payload: unknown) => {
     const objPayload = payload as object;
