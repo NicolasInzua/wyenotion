@@ -1,5 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import * as Y from 'yjs';
+
+function toUint8Array(str: string): Uint8Array {
+  const update_contents = str.split(',').map((s) => parseInt(s));
+  return new Uint8Array(update_contents);
+}
 
 export interface YDoc {
   sharedType: Y.XmlText;
@@ -10,18 +15,21 @@ export function useYDoc(
   onUpdate: (update: unknown) => void,
   initialContent: string
 ): YDoc {
-  const yDoc = useRef<Y.Doc>(new Y.Doc());
-  const sharedType = useRef<Y.XmlText>(yDoc.current.get('content', Y.XmlText));
+  const [yDoc, setYDoc] = useState<Y.Doc>(new Y.Doc());
+  const sharedType = yDoc.get('content', Y.XmlText);
 
-  onUpdate(Y.encodeStateAsUpdate(yDoc.current));
+  onUpdate(Y.encodeStateAsUpdate(yDoc));
 
   useEffect(() => {
+    const yDoc = new Y.Doc();
+    setYDoc(yDoc);
+
     if (!initialContent) return;
-    applyUpdate(initialContent);
+    applyUpdate(yDoc, initialContent);
   }, [initialContent]);
 
   useEffect(() => {
-    const ydoc = yDoc.current;
+    const ydoc = yDoc;
 
     const handleUpdate = (update: Uint8Array) => {
       onUpdate(update);
@@ -31,13 +39,11 @@ export function useYDoc(
     return () => {
       ydoc.off('update', handleUpdate);
     };
-  }, [onUpdate]);
+  }, [yDoc, onUpdate]);
 
-  const applyUpdate = (update: string) => {
-    const update_contents = update.split(',').map((s) => parseInt(s));
-    const parsed_update = new Uint8Array(update_contents);
-    Y.applyUpdate(yDoc.current, parsed_update);
+  const applyUpdate = (yDoc: Y.Doc, update: string) => {
+    Y.applyUpdate(yDoc, toUint8Array(update));
   };
 
-  return { sharedType: sharedType.current, applyUpdate };
+  return { sharedType, applyUpdate: (update) => applyUpdate(yDoc, update) };
 }

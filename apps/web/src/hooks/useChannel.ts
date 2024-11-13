@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Socket, Channel as PhoenixChannel } from 'phoenix';
 
-if (!process.env.NEXT_PUBLIC_SOCKET_URL)
+if (!process.env.NEXT_PUBLIC_PHOENIX_ENDPOINT)
   throw new Error('SOCKET_URL is not defined');
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
+const SOCKET_URL = process.env.NEXT_PUBLIC_PHOENIX_ENDPOINT;
 
 let socket: Socket | null = null;
 
@@ -49,18 +49,24 @@ export function useChannel(
   useEffect(() => {
     const socket = getSocket();
 
-    const channel = socket.channel(topic, { username });
-    channel.join().receive('ok', onJoin).receive('error', onError);
+    const currentChannel = socket.channel(topic, { username });
 
     if (onMessage)
-      channel.onMessage = (event, payload) => {
+      currentChannel.onMessage = (event, payload) => {
         onMessage(event, payload);
         return payload;
       };
 
-    setChannel(channel);
+    currentChannel
+      .join()
+      .receive('ok', (payload) => {
+        onJoin(payload);
+        setChannel(currentChannel);
+      })
+      .receive('error', onError);
+
     return () => {
-      channel.leave();
+      currentChannel.leave();
     };
   }, [topic, username, onJoin, onError, onMessage]);
 

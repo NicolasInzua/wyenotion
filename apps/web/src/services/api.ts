@@ -11,4 +11,8 @@ export const api = {
     const res = await axios.get(`/api/pages/${slug}/content`);
     return res.data;
   },
+  fetchPageList: async () => {
+    const res = await axios.get('/api/pages');
+    return res.data;
+  },
 };

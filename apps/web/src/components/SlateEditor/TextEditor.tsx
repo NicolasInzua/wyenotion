@@ -12,7 +12,6 @@ import {
   Editable,
   ReactEditor,
   Slate,
-  useFocused,
   useSlateStatic,
   withReact,
 } from 'slate-react';
@@ -181,7 +180,7 @@ export function TextEditor({
           <Editable
             renderElement={renderElement}
             renderLeaf={renderLeaf}
-            className="h-screen rounded-lg border-stone-100 border-2"
+            className="h-screen outline-none"
             onKeyDown={(event) => {
               for (const hotkey in HOTKEYS) {
                 if (isHotKey(hotkey, event)) {
@@ -215,7 +214,7 @@ const SortableElement = (props: RenderElementProps) => {
     <div {...props.attributes}>
       <div
         ref={setNodeRef}
-        className={`flex items-center w-full cursor-auto group ${isOver ? 'bg-gray-100' : ''}`}
+        className={`flex items-center w-full outline-none cursor-auto group ${isOver ? 'bg-gray-100' : ''}`}
         {...attributes}
       >
         <button
@@ -236,7 +235,6 @@ const SortableElement = (props: RenderElementProps) => {
 function FloatingToolbar() {
   const [isOpen, setIsOpen] = useState(false);
   const editor = useSlateStatic();
-  const focused = useFocused();
 
   const { refs, context, floatingStyles } = useFloating({
     placement: 'top',
@@ -250,7 +248,8 @@ function FloatingToolbar() {
   useEffect(() => {
     const updateToolbarVisibility = () => {
       const { selection } = editor;
-      if (!selection || !focused || Range.isCollapsed(selection)) {
+
+      if (!selection || Range.isCollapsed(selection)) {
         setIsOpen(false);
         return;
       }
@@ -270,7 +269,7 @@ function FloatingToolbar() {
     return () => {
       editor.onChange = onChange;
     };
-  }, [refs, editor, focused]);
+  }, [refs, editor]);
 
   return (
     <>

@@ -1,7 +1,8 @@
 import axios, { AxiosError } from 'axios';
 import { ApiError } from '@/services/api';
 
-const baseURL = process.env.PHOENIX_ENDPOINT;
+const baseURL =
+  process.env.PHOENIX_ENDPOINT || process.env.NEXT_PUBLIC_PHOENIX_ENDPOINT;
 
 const axiosInstance = axios.create({
   baseURL,

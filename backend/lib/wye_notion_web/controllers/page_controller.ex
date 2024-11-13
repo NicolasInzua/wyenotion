@@ -1,6 +1,8 @@
 defmodule WyeNotionWeb.PageController do
   use WyeNotionWeb, :controller
 
+  import Ecto.Query
+
   alias WyeNotion.Page
   alias WyeNotion.PageContentServer
   alias WyeNotion.Repo
@@ -16,5 +18,14 @@ defmodule WyeNotionWeb.PageController do
         PageContentServer.state_as_stringified_update(slug)
       )
     end
+  end
+
+  def index(conn, _) do
+    query = from p in Page, select: p.slug
+    page_slugs = Repo.all(query)
+    json(
+        conn,
+        page_slugs
+      )
   end
 end

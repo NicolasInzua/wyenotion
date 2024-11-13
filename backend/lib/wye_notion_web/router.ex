@@ -8,6 +8,7 @@ defmodule WyeNotionWeb.Router do
   scope "/api", WyeNotionWeb do
     pipe_through :api
     get "/pages/:slug/content", PageController, :show
+    get "/pages/", PageController, :index
   end
 
   # Enable LiveDashboard preview in development

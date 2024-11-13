@@ -26,7 +26,7 @@ export function UserListTooltip({ userNames }: UserCounterProps) {
     <>
       <div
         ref={refs.setReference}
-        className="cursor-default"
+        className="text-sm text-gray-500 font-medium cursor-default"
         {...getReferenceProps()}
       >
         Current Users: {usersCount}
