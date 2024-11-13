@@ -27,6 +27,15 @@ export default function Home({
     if (event === 'y_update_broadcasted' && 'serialized_update' in objPayload) {
       handleRef.current?.applyUpdate(objPayload.serialized_update as string);
     }
+
+    if (
+      event === 'awareness_update_broadcasted' &&
+      'serialized_update' in objPayload
+    ) {
+      handleRef.current?.applyAwarenessUpdate(
+        objPayload.serialized_update as string
+      );
+    }
   }, []);
 
   const { pushChannelEvent } = useChannel(`page:${slug}`, {
@@ -34,8 +43,8 @@ export default function Home({
     onMessage,
   });
 
-  const onUpdate = (update: unknown) => {
-    pushChannelEvent('y_update', `${update}`);
+  const onUpdate = (event: string, update: unknown) => {
+    pushChannelEvent(event, `${update}`);
   };
 
   return (
@@ -45,6 +54,7 @@ export default function Home({
       </div>
       <TextEditor
         initialContent={pageContent}
+        currentUser={username}
         handleRef={handleRef}
         onUpdate={onUpdate}
       />
@@ -56,10 +66,9 @@ export async function getServerSideProps({ query }: GetServerSidePropsContext) {
   const slug = query.slug as string;
 
   try {
-    const [pageContent, pageList] = await Promise.all([
-      api.fetchPageContent(slug),
-      api.fetchPageList(),
-    ]);
+    const pageList = await api.fetchPageList();
+    const pageContent = await api.fetchPageContent(slug).catch(() => null);
+
     return {
       props: {
         slug,
