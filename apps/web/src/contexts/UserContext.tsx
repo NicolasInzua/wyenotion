@@ -16,8 +16,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const storedUsername = localStorage.getItem('username');
     if (storedUsername) {
       setUsername(storedUsername);
-      setIsLoading(false);
     }
+    setIsLoading(false);
+    return () => {
+      localStorage.removeItem('username');
+    };
   }, []);
 
   const handleSetUsername = (newUsername: string) => {
