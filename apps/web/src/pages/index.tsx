@@ -2,6 +2,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const USERNAME_MIN_LENGTH = 3;
 
@@ -57,9 +58,9 @@ export default function Home() {
   return (
     <div className="flex items-center justify-center h-screen">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.4 }}
         className="bg-white shadow-lg rounded-md p-8 w-full max-w-md"
       >
         <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
@@ -86,9 +87,7 @@ export default function Home() {
             disabled={isDisabled}
           >
             {isLoading ? (
-              <div className="flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin" />
-              </div>
+              <LoadingSpinner />
             ) : (
               <p className="font-bold">Start Editing</p>
             )}
