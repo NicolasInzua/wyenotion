@@ -19,6 +19,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
     setIsLoading(false);
     return () => {
+      setUsername('');
       localStorage.removeItem('username');
     };
   }, []);

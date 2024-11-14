@@ -98,15 +98,14 @@ const HomeSideBarContent = ({ content }: { content: string[] }) => {
       <nav>
         <ul className="flex flex-col overflow-y-auto max-h-[500px] gap-1">
           {sortedContent.map((page) => (
-            <li
-              key={page}
-              className="rounded-md hover:bg-slate-200 px-4 py-1 selected:bg-neutral-200 selected:hover:bg-slate-300"
-              data-selected={activeItem === page}
-            >
-              <Link href={`/${page}`}>
+            <Link key={page} href={`/${page}`}>
+              <li
+                className="rounded-md hover:bg-slate-200 px-4 py-1 selected:bg-neutral-200 selected:hover:bg-slate-300"
+                data-selected={activeItem === page}
+              >
                 <span className="text-m font-medium">{page}</span>
-              </Link>
-            </li>
+              </li>
+            </Link>
           ))}
         </ul>
       </nav>

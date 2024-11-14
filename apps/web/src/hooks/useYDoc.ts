@@ -36,8 +36,8 @@ export function useYDoc(
   useEffect(() => {
     const ydoc = yDoc;
 
-    const handleUpdate = () => {
-      onUpdate('y_update', Y.encodeStateAsUpdate(ydoc)); // TODO, fullstack: send only update, not whole state
+    const handleUpdate = (update: Uint8Array) => {
+      onUpdate('y_update', update);
     };
 
     ydoc.on('update', handleUpdate);

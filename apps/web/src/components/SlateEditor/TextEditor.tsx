@@ -198,7 +198,7 @@ export function TextEditor({
               <Editable
                 renderElement={renderElement}
                 renderLeaf={renderLeaf}
-                className="h-screen rounded-lg border-stone-100 border-2"
+                className="h-screen outline-none"
                 onKeyDown={(event) => {
                   for (const hotkey in HOTKEYS) {
                     if (isHotKey(hotkey, event)) {

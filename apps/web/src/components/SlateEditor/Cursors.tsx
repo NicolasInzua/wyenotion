@@ -46,7 +46,7 @@ function Selection({
       {selectionRects.map((position, i) => (
         <div
           style={{ ...selectionStyle, ...position }}
-          className="absolute pointer-events-none opacity-10 "
+          className="absolute pointer-events-none"
           key={i}
         />
       ))}
